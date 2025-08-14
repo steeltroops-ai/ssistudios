@@ -7,8 +7,7 @@ import { HiOutlineMenu, HiX } from 'react-icons/hi' // For local header/toggle
 
 
 // --- HELPER FUNCTIONS ---
-// These functions are now solid and should not be the source of issues.
-// Placed here for context but ideally in a separate utils file.
+// Helper functions remain unchanged, but I've added one new function for the curved plate.
 
 function drawRoundedRect(
   ctx: CanvasRenderingContext2D,
@@ -56,6 +55,30 @@ function clipRoundedRect(
   ctx.closePath()
   ctx.clip()
 }
+
+// *** NEW HELPER FUNCTION FOR THE CURVED PLATE ***
+function fillRoundedRect(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    radius: number
+) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    ctx.fill();
+}
+
 
 /** ========= PNG DPI WRITER (valid CRC) ========= */
 function crc32(bytes: Uint8Array) {
@@ -284,6 +307,8 @@ export default function PosterWithLogoEditor() {
   const [logoRadius, setLogoRadius] = useState(0);
   const [logoPlateHorizontalPadding, setLogoPlateHorizontalPadding] = useState(15);
   const [logoPlateVerticalPadding, setLogoPlateVerticalPadding] = useState(15);
+  // *** NEW STATE for plate corner radius ***
+  const [logoPlateRadius, setLogoPlateRadius] = useState(0);
 
   const [showExportModal, setShowExportModal] = useState(false)
 
@@ -438,7 +463,8 @@ export default function PosterWithLogoEditor() {
             const plateX = x - hPadding;
             const plateY = y - vPadding;
             ctx.fillStyle = 'white';
-            ctx.fillRect(plateX, plateY, plateWidth, plateHeight);
+            // *** CHANGE: Use fillRoundedRect for curved corners ***
+            fillRoundedRect(ctx, plateX, plateY, plateWidth, plateHeight, logoPlateRadius);
         }
 
         ctx.save();
@@ -449,7 +475,7 @@ export default function PosterWithLogoEditor() {
   }, [
     baseImage, logoImage, backgroundType, logoHorizontalOffset, logoVerticalOffset, 
     logoBlendMode, previewWidth, previewHeight, drawLogoPreview, 
-    logoPlateHorizontalPadding, logoPlateVerticalPadding
+    logoPlateHorizontalPadding, logoPlateVerticalPadding, logoPlateRadius // Added new dependencies
   ])
 
   function startProgressAnimation(onComplete: () => void) {
@@ -548,7 +574,8 @@ export default function PosterWithLogoEditor() {
         const plateX = x - hPadding;
         const plateY = y - vPadding;
         ctx.fillStyle = 'white';
-        ctx.fillRect(plateX, plateY, plateWidth, plateHeight);
+        // *** CHANGE: Use fillRoundedRect for curved corners on export ***
+        fillRoundedRect(ctx, plateX, plateY, plateWidth, plateHeight, logoPlateRadius);
     }
 
     ctx.save();
@@ -587,9 +614,10 @@ export default function PosterWithLogoEditor() {
   // Component for individual reset buttons
   const ResetButton = ({ onReset, isDefault }: { onReset: () => void; isDefault: boolean }) => (
     <button
-      onClick={onReset}
-      className={`text-gray-500 hover:text-white transition-opacity duration-200 ${isDefault ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+      onClick={isDefault ? undefined : onReset} // Prevent click if default
+      className={`text-gray-500 hover:text-white transition-opacity duration-200 ${isDefault ? 'opacity-40 cursor-not-allowed' : 'opacity-100'}`}
       aria-label="Reset setting"
+      disabled={isDefault}
     >
       <AiOutlineReload size={14} />
     </button>
@@ -708,7 +736,7 @@ export default function PosterWithLogoEditor() {
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <label htmlFor="background-select" className="font-medium text-gray-300 text-sm">Logo Background Plate</label>
-                  <ResetButton onReset={() => { setBackgroundType('original'); setLogoPlateHorizontalPadding(15); setLogoPlateVerticalPadding(15); }} isDefault={backgroundType === 'original'} />
+                  <ResetButton onReset={() => { setBackgroundType('original'); setLogoPlateHorizontalPadding(15); setLogoPlateVerticalPadding(15); setLogoPlateRadius(0); }} isDefault={backgroundType === 'original'} />
                 </div>
                 <select id="background-select" value={backgroundType} onChange={(e) => setBackgroundType(e.target.value as 'original' | 'white')} disabled={!logoImage} className="w-full bg-gray-900 border border-gray-600 text-gray-100 text-sm rounded-md px-4 py-2 cursor-pointer outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 hover:border-gray-500 transition-colors">
                   <option value="original">Transparent (No Plate)</option>
@@ -719,6 +747,11 @@ export default function PosterWithLogoEditor() {
                   {backgroundType === 'white' && (
                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto', marginTop: '1.5rem' }} exit={{ opacity: 0, height: 0, marginTop: '0rem' }} className="overflow-hidden">
                       <div className="space-y-4 pt-4 border-t border-gray-700/50">
+                        {/* *** NEW: Plate Corner Radius Slider *** */}
+                        <div>
+                          <label htmlFor="plate-radius" className="block font-medium text-gray-400 text-xs mb-2">Plate Corner Radius: {logoPlateRadius}px</label>
+                          <input id="plate-radius" type="range" min="0" max="100" value={logoPlateRadius} onChange={(e) => setLogoPlateRadius(Number(e.target.value))} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider" />
+                        </div>
                         <div>
                           <label htmlFor="plate-h-padding" className="block font-medium text-gray-400 text-xs mb-2">Plate Horizontal Padding: {logoPlateHorizontalPadding}%</label>
                           <input id="plate-h-padding" type="range" min="0" max="100" value={logoPlateHorizontalPadding} onChange={(e) => setLogoPlateHorizontalPadding(Number(e.target.value))} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider" />
@@ -740,7 +773,6 @@ export default function PosterWithLogoEditor() {
               <AiOutlineDownload size={22} />
               {generating ? 'Exporting...' : 'Export Poster'}
             </button>
-            {/* The single reset button has been removed from here */}
           </div>
         </div>
 
