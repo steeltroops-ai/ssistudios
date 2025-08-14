@@ -1,50 +1,46 @@
+
+// =========================================================================
 // app/login/page.tsx
+// UPDATED: This page is now much simpler. It only handles the form submission.
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import AuthBg from "@/components/backgrounds/AuthBg";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
-  const router = useRouter();
+  const { login } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
-
-  const capitalize = (s: string) => {
-    if (typeof s !== 'string') return ''
-    return s.charAt(0).toUpperCase() + s.slice(1)
-  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
-    console.log("Attempting login with username:", username, "and password length:", password.length > 0 ? '****' : 'empty');
+    try {
+      const res = await fetch("/api/admin-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
 
-    const res = await fetch("/api/admin-login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
+      const data = await res.json();
 
-    if (res.ok) {
-      setTimeout(() => {
-        setIsLoading(false);
-        setShowWelcome(true);
-        setTimeout(() => {
-          // *** CHANGE THIS LINE TO REDIRECT TO /test ***
-          router.push("/dashboard"); // Redirect to the new /test page
-        }, 1500);
-      }, 1500);
-    } else {
-      setIsLoading(false);
-      setShowWelcome(false);
-      const errorData = await res.json();
-      console.error("API Error Response:", errorData);
-      setError(errorData.message || "Login failed. Please try again.");
+      if (!res.ok) {
+        // If response is not ok, throw an error to be caught below
+        throw new Error(data.message || "Login failed. Please try again.");
+      }
+
+      // On success, just call the login function.
+      // The AuthProvider will handle the redirect automatically.
+      login(data.user);
+
+    } catch (err: any) {
+      console.error("API Error Response:", err);
+      setError(err.message);
+      setIsLoading(false); // Stop loading on error
     }
   };
 
@@ -54,24 +50,14 @@ export default function LoginPage() {
         <AuthBg />
       </div>
 
-      {isLoading && !showWelcome && (
+      {/* Loading overlay can be simplified */}
+      {isLoading && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center animate-fade-in">
           <div className="text-center animate-scale-in">
             <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4" />
             <p className="text-white text-sm tracking-wide">
               Verifying credentials...
             </p>
-          </div>
-        </div>
-      )}
-
-      {showWelcome && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center animate-fade-in">
-          <div
-            className="text-white text-4xl font-extrabold tracking-wide animate-scale-in"
-            style={{ fontFamily: 'Inter, sans-serif', letterSpacing: '0.5px' }}
-          >
-            Welcome, <span className="text-blue-300">{capitalize(username)}</span>
           </div>
         </div>
       )}
@@ -88,7 +74,7 @@ export default function LoginPage() {
         </p>
 
         {error && (
-          <div className="bg-red-50 text-red-600 text-sm px-3 py-2 rounded mb-4">
+          <div className="bg-red-50 text-red-600 text-sm px-3 py-2 rounded mb-4 text-center">
             {error}
           </div>
         )}
@@ -101,13 +87,13 @@ export default function LoginPage() {
             <input
               type="text"
               className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2
-                                  text-gray-900 md:text-white
-                                  focus:outline-none focus:ring-2 focus:ring-black md:focus:ring-blue-300
-                                  bg-white md:bg-gray-900/30 md:border-gray-700/50"
+                                 text-gray-900 md:text-white
+                                 focus:outline-none focus:ring-2 focus:ring-black md:focus:ring-blue-300
+                                 bg-white md:bg-gray-900/30 md:border-gray-700/50"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter your username"
-              disabled={isLoading || showWelcome}
+              disabled={isLoading}
             />
           </div>
 
@@ -118,24 +104,24 @@ export default function LoginPage() {
             <input
               type="password"
               className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2
-                                  text-gray-900 md:text-white
-                                  focus:outline-none focus:ring-2 focus:ring-black md:focus:ring-blue-300
-                                  bg-white md:bg-gray-900/30 md:border-gray-700/50"
+                                 text-gray-900 md:text-white
+                                 focus:outline-none focus:ring-2 focus:ring-black md:focus:ring-blue-300
+                                 bg-white md:bg-gray-900/30 md:border-gray-700/50"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
-              disabled={isLoading || showWelcome}
+              disabled={isLoading}
             />
           </div>
 
           <button
             type="submit"
             className="w-full bg-black text-white py-2.5 rounded-lg font-medium hover:bg-gray-800 transition-colors
-                                  disabled:opacity-50 disabled:cursor-not-allowed
-                                  md:bg-gray-800/40 md:border md:border-gray-700/50 md:hover:bg-gray-700/50 md:shadow-inner"
-            disabled={isLoading || showWelcome}
+                                 disabled:opacity-50 disabled:cursor-not-allowed
+                                 md:bg-gray-800/40 md:border md:border-gray-700/50 md:hover:bg-gray-700/50 md:shadow-inner"
+            disabled={isLoading}
           >
-            Login
+            {isLoading ? 'Logging in...' : 'Login'}
           </button>
         </form>
       </div>

@@ -1,3 +1,5 @@
+// contexts/AuthContext.tsx
+// NEW FILE: This centralizes all authentication logic.
 'use client'
 
 import {
@@ -5,85 +7,106 @@ import {
   useContext,
   useState,
   useEffect,
-  ReactNode,
+  ReactNode
 } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 
-// 1. Define the shape of the context's value
-interface AuthContextType {
-  isAuthenticated: boolean
-  loading: boolean
-  login: () => void
-  logout: () => void
+// Define the shape of the user and context
+interface User {
+  id: string;
+  username: string;
 }
 
-// 2. Create the context with a default value of null
-const AuthContext = createContext<AuthContextType | null>(null)
+interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  login: (user: User) => void;
+  logout: () => void;
+  isLoading: boolean; // To handle initial auth check
+}
 
-// 3. Create the AuthProvider component
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
-  const [loading, setLoading] = useState<boolean>(true)
-  const router = useRouter()
-  const pathname = usePathname()
+// Create the context
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-  // This effect runs once on mount to check the initial auth state
+// The AuthProvider component that will wrap your app
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // On initial load, check for a persisted user session
   useEffect(() => {
     try {
-      const loggedIn = localStorage.getItem('ssi-authenticated') === 'true'
-      setIsAuthenticated(loggedIn)
-    } catch (error) {
-      console.error('Could not access localStorage:', error)
-      setIsAuthenticated(false)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  // This effect handles redirection based on auth state changes
-  useEffect(() => {
-    // Wait until the initial loading is done
-    if (!loading) {
-      if (!isAuthenticated && pathname !== '/login') {
-        router.replace('/login')
-      } else if (isAuthenticated && pathname === '/login') {
-        router.replace('/')
+      const storedUser = sessionStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
       }
+    } catch (error) {
+      console.error("Failed to parse user from sessionStorage", error);
+      sessionStorage.removeItem('user');
+    } finally {
+      setIsLoading(false);
     }
-  }, [isAuthenticated, loading, pathname, router])
+  }, []);
 
-  const login = () => {
-    localStorage.setItem('ssi-authenticated', 'true')
-    setIsAuthenticated(true)
-  }
+  // This crucial effect handles all redirection logic
+  useEffect(() => {
+    // Don't redirect until the initial loading is complete
+    if (isLoading) {
+      return;
+    }
+
+    const isAuthPage = pathname === '/login';
+
+    // If user is not logged in and not on the login page, redirect them
+    if (!user && !isAuthPage) {
+      router.push('/login');
+    }
+
+    // If user IS logged in and tries to access the login page, redirect to dashboard
+    if (user && isAuthPage) {
+      router.push('/dashboard');
+    }
+  }, [user, isLoading, pathname, router]);
+
+  const login = (userData: User) => {
+    setUser(userData);
+    sessionStorage.setItem('user', JSON.stringify(userData));
+    // No need to push here; the effect above will handle it.
+  };
 
   const logout = () => {
-    localStorage.removeItem('ssi-authenticated')
-    setIsAuthenticated(false)
-    // The useEffect above will handle the redirect to '/login'
-  }
+    setUser(null);
+    sessionStorage.removeItem('user');
+    // The effect will handle redirecting to /login.
+  };
 
-  // The value that will be available to all children
-  const value: AuthContextType = {
-    isAuthenticated,
-    loading,
+  const value = {
+    user,
+    isAuthenticated: !!user,
     login,
     logout,
+    isLoading,
+  };
+
+  // Render a loading state or null while checking auth to prevent content flashes
+  if (isLoading) {
+    // You can replace this with a full-page loading spinner
+    return null; 
   }
 
-  // While loading, you can return a spinner or null
-  if (loading) {
-    return null
-  }
+  return (
+    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  );
+};
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
-
-// 4. Create a custom hook for easy access to the context
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (context === null) {
-    throw new Error('useAuth must be used within an AuthProvider')
+// Custom hook to easily access the auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
   }
-  return context
-}
+  return context;
+};
+
