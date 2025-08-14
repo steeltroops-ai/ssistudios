@@ -1,5 +1,3 @@
-// app/poster/new/single-logo/editor/page.tsx
-
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
@@ -285,6 +283,9 @@ export default function PosterWithLogoEditor() {
   const [logoVerticalOffset, setLogoVerticalOffset] = useState(0); // Offset from center in % of container height
   const [logoRadius, setLogoRadius] = useState(0); // Correctly initialized here
 
+  // *** NEW STATE for dynamic white plate padding ***
+  const [logoPlateHorizontalPadding, setLogoPlateHorizontalPadding] = useState(15); // Percentage of logo width
+  const [logoPlateVerticalPadding, setLogoPlateVerticalPadding] = useState(15); // Percentage of logo height
 
   const [showExportModal, setShowExportModal] = useState(false)
 
@@ -337,8 +338,7 @@ export default function PosterWithLogoEditor() {
       return;
     }
 
-    // Set canvas dimensions large enough for high quality transformations, but not excessively so
-    const maxDimension = 1000; // Cap internal canvas size for performance
+    const maxDimension = 1000;
     let logoCanvasWidth = logoImage.naturalWidth || logoImage.width;
     let logoCanvasHeight = logoImage.naturalHeight || logoImage.height;
 
@@ -362,58 +362,45 @@ export default function PosterWithLogoEditor() {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     ctx.save()
 
-    // Move origin to center of this temporary logo canvas
     ctx.translate(canvas.width / 2, canvas.height / 2)
-
-    // Apply rotation
     ctx.rotate(logoRotation * (Math.PI / 180))
 
-    // Calculate effective logo size based on actual image dimensions and zoom
     const originalLogoDrawWidth = logoImage.width;
     const originalLogoDrawHeight = logoImage.height;
 
-    // Scale the logo to fit within the *preview canvas's minimum dimension* by default, then apply logoZoom
-    // This ensures that 100% zoom makes the logo fit nicely without cutoff on its own preview.
     const fitScale = Math.min(canvas.width / originalLogoDrawWidth, canvas.height / originalLogoDrawHeight);
     const currentLogoScaleFactor = fitScale * (logoZoom / 100);
 
     ctx.scale(currentLogoScaleFactor, currentLogoScaleFactor);
 
-    ctx.globalAlpha = logoOpacity / 100 // Opacity
+    ctx.globalAlpha = logoOpacity / 100
     ctx.imageSmoothingEnabled = true;
     (ctx as any).imageSmoothingQuality = 'high';
 
-    // Draw logo, centered on the new origin (which is the center of the canvas)
     const drawX = -originalLogoDrawWidth / 2
     const drawY = -originalLogoDrawHeight / 2
 
-    // Apply clipping for radius
-    // CRITICAL FIX for logoRadius: Scale the logoRadius inversely to the drawing scale factor
-    // This ensures the radius appears constant regardless of zoom level.
     const effectiveLogoRadius = logoRadius / currentLogoScaleFactor;
     if (effectiveLogoRadius > 0) {
       clipRoundedRect(ctx, drawX, drawY, originalLogoDrawWidth, originalLogoDrawHeight, effectiveLogoRadius);
     }
     ctx.drawImage(logoImage, drawX, drawY, originalLogoDrawWidth, originalLogoDrawHeight)
-    ctx.restore() // Restore state after drawing logo and clipping
+    ctx.restore()
 
-    // Draw border
     if (logoBorderWidth > 0) {
         ctx.save();
-        ctx.translate(canvas.width / 2, canvas.height / 2); // Translate to center again for border
-        ctx.rotate(logoRotation * (Math.PI / 180)); // Re-apply rotation for border
-        ctx.scale(currentLogoScaleFactor, currentLogoScaleFactor); // Re-apply scale for border
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate(logoRotation * (Math.PI / 180));
+        ctx.scale(currentLogoScaleFactor, currentLogoScaleFactor);
 
         ctx.strokeStyle = logoBorderColor;
-        // CRITICAL FIX for logoBorderWidth: Scale the borderWidth inversely to the drawing scale factor
         ctx.lineWidth = logoBorderWidth / currentLogoScaleFactor;
 
-        // Draw the border around the logo's original dimensions, using the *scaled* radius
         drawRoundedRect(ctx, drawX, drawY, originalLogoDrawWidth, originalLogoDrawHeight, effectiveLogoRadius, ctx.lineWidth);
         ctx.restore();
     }
 
-  }, [logoImage, logoZoom, logoRotation, logoOpacity, logoRadius, logoBorderWidth, logoBorderColor]) // Added logoRadius to dependencies
+  }, [logoImage, logoZoom, logoRotation, logoOpacity, logoRadius, logoBorderWidth, logoBorderColor])
 
   // Update logo preview whenever logo or its transform settings change
   useEffect(() => {
@@ -430,64 +417,65 @@ export default function PosterWithLogoEditor() {
 
     canvas.width = previewWidth
     canvas.height = previewHeight
-    ctx.clearRect(0, 0, previewWidth, previewHeight) // Clear canvas
+    ctx.clearRect(0, 0, previewWidth, previewHeight)
 
     // 1. Draw base image
     if (baseImage) {
       ctx.drawImage(baseImage, 0, 0, previewWidth, previewHeight)
     }
 
-    // 2. Draw logo container (background plate if white)
-    const containerConfig = { top: 0.62, bottom: 0.76, hPadding: 0.35 }
-    const containerY = previewHeight * containerConfig.top
-    const containerHeight = previewHeight * (containerConfig.bottom - containerConfig.top)
-    const containerX = previewWidth * containerConfig.hPadding
-    const containerWidth = previewWidth * (1 - 2 * containerConfig.hPadding)
-
-    if (logoImage && backgroundType === 'white') {
-      const paddingRatio = 0.1
-      const paddedWidth = containerWidth * (1 + paddingRatio) // Pad relative to container
-      const paddedHeight = containerHeight * (1 + paddingRatio)
-      const paddedX = containerX - (paddedWidth - containerWidth) / 2
-      const paddedY = containerY - (paddedHeight - containerHeight) / 2
-      ctx.fillStyle = 'white'
-      ctx.fillRect(paddedX, paddedY, paddedWidth, paddedHeight)
-    }
-
-    // 3. Draw transformed logo from logoPreviewCanvas onto the main combined canvas
+    // 2. Draw logo (and optional plate)
     if (logoImage && logoPreviewCanvasRef.current) {
-      const transformedLogoCanvas = logoPreviewCanvasRef.current; // This canvas already has the transformed logo
+        const transformedLogoCanvas = logoPreviewCanvasRef.current;
 
-      // Calculate the size of the transformed logo from its preview canvas.
-      // This is the size of the logo AFTER its individual scaling/rotation from drawLogoPreview.
-      const transformedLogoRenderWidth = transformedLogoCanvas.width;
-      const transformedLogoRenderHeight = transformedLogoCanvas.height;
+        const containerConfig = { top: 0.62, bottom: 0.76, hPadding: 0.35 };
+        const containerY = previewHeight * containerConfig.top;
+        const containerHeight = previewHeight * (containerConfig.bottom - containerConfig.top);
+        const containerX = previewWidth * containerConfig.hPadding;
+        const containerWidth = previewWidth * (1 - 2 * containerConfig.hPadding);
 
-      // Determine max scale factor to fit this already transformed logo into the main container
-      const scaleFactorToFitContainer = Math.min(
-          containerWidth / transformedLogoRenderWidth,
-          containerHeight / transformedLogoRenderHeight
-      );
+        const transformedLogoRenderWidth = transformedLogoCanvas.width;
+        const transformedLogoRenderHeight = transformedLogoCanvas.height;
 
-      const finalLogoWidth = transformedLogoRenderWidth * scaleFactorToFitContainer;
-      const finalLogoHeight = transformedLogoRenderHeight * scaleFactorToFitContainer;
+        const scaleFactorToFitContainer = Math.min(
+            containerWidth / transformedLogoRenderWidth,
+            containerHeight / transformedLogoRenderHeight
+        );
 
-      // Calculate position: always centered in container, then apply offsets
-      let x = containerX + (containerWidth - finalLogoWidth) / 2;
-      let y = containerY + (containerHeight - finalLogoHeight) / 2;
+        const finalLogoWidth = transformedLogoRenderWidth * scaleFactorToFitContainer;
+        const finalLogoHeight = transformedLogoRenderHeight * scaleFactorToFitContainer;
 
-      // Apply horizontal and vertical offsets
-      x += (logoHorizontalOffset / 100) * containerWidth; // Offset based on container width
-      y += (logoVerticalOffset / 100) * containerHeight; // Offset based on container height
+        let x = containerX + (containerWidth - finalLogoWidth) / 2;
+        let y = containerY + (containerHeight - finalLogoHeight) / 2;
 
-      ctx.save();
-      ctx.globalCompositeOperation = logoBlendMode; // Apply blend mode
-      ctx.drawImage(transformedLogoCanvas, x, y, finalLogoWidth, finalLogoHeight);
-      ctx.restore();
+        x += (logoHorizontalOffset / 100) * containerWidth;
+        y += (logoVerticalOffset / 100) * containerHeight;
+
+        // *** NEW: Draw dynamic white plate based on logo size and padding ***
+        if (backgroundType === 'white') {
+            const hPadding = finalLogoWidth * (logoPlateHorizontalPadding / 100);
+            const vPadding = finalLogoHeight * (logoPlateVerticalPadding / 100);
+
+            const plateWidth = finalLogoWidth + hPadding * 2;
+            const plateHeight = finalLogoHeight + vPadding * 2;
+            const plateX = x - hPadding;
+            const plateY = y - vPadding;
+
+            ctx.fillStyle = 'white';
+            ctx.fillRect(plateX, plateY, plateWidth, plateHeight);
+        }
+
+        // 3. Draw transformed logo on top
+        ctx.save();
+        ctx.globalCompositeOperation = logoBlendMode;
+        ctx.drawImage(transformedLogoCanvas, x, y, finalLogoWidth, finalLogoHeight);
+        ctx.restore();
     }
-
-
-  }, [baseImage, logoImage, backgroundType, logoHorizontalOffset, logoVerticalOffset, logoBlendMode, previewWidth, previewHeight, drawLogoPreview])
+  }, [
+    baseImage, logoImage, backgroundType, logoHorizontalOffset, logoVerticalOffset, 
+    logoBlendMode, previewWidth, previewHeight, drawLogoPreview, 
+    logoPlateHorizontalPadding, logoPlateVerticalPadding // Added new dependencies
+  ])
 
 
   function startProgressAnimation(onComplete: () => void) {
@@ -536,7 +524,6 @@ export default function PosterWithLogoEditor() {
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
-    // Reset all logo transform settings to initial defaults
     setLogoZoom(100)
     setLogoRotation(0)
     setLogoOpacity(100)
@@ -546,7 +533,10 @@ export default function PosterWithLogoEditor() {
     setLogoHorizontalOffset(0);
     setLogoVerticalOffset(0);
     setBackgroundType('original');
-    setLogoRadius(0); // Also reset radius
+    setLogoRadius(0);
+    // *** NEW: Reset plate padding on reset ***
+    setLogoPlateHorizontalPadding(15);
+    setLogoPlateVerticalPadding(15);
   }
 
   const handleGenerateClick = () => {
@@ -580,54 +570,53 @@ export default function PosterWithLogoEditor() {
     ctx.imageSmoothingEnabled = true
     ;(ctx as any).imageSmoothingQuality = 'high'
 
-    // 1. Draw base image at export resolution
+    // 1. Draw base image
     ctx.drawImage(baseImage, 0, 0, outW, outH)
 
-    // 2. Calculate logo container at export resolution
+    // 2. Calculate logo position and size for export
+    const transformedLogoCanvas = logoPreviewCanvasRef.current;
     const containerConfig = { top: 0.62, bottom: 0.76, hPadding: 0.35 }
     const containerY = outH * containerConfig.top
     const containerHeight = outH * (containerConfig.bottom - containerConfig.top)
     const containerX = outW * containerConfig.hPadding
     const containerWidth = outW * (1 - 2 * containerConfig.hPadding)
+    
+    const transformedLogoRenderWidth = transformedLogoCanvas.width;
+    const transformedLogoRenderHeight = transformedLogoCanvas.height;
 
-    // 3. Draw white background plate if selected
+    const scaleFactorToFitContainer = Math.min(
+        containerWidth / transformedLogoRenderWidth,
+        containerHeight / transformedLogoRenderHeight
+    );
+
+    const finalLogoWidth = transformedLogoRenderWidth * scaleFactorToFitContainer;
+    const finalLogoHeight = transformedLogoRenderHeight * scaleFactorToFitContainer;
+
+    let x = containerX + (containerWidth - finalLogoWidth) / 2;
+    let y = containerY + (containerHeight - finalLogoHeight) / 2;
+
+    x += (logoHorizontalOffset / 100) * containerWidth;
+    y += (logoVerticalOffset / 100) * containerHeight;
+
+    // *** NEW: Draw dynamic white plate for EXPORT ***
     if (backgroundType === 'white') {
-      const paddingRatio = 0.1
-      const paddedWidth = containerWidth * (1 + paddingRatio)
-      const paddedHeight = containerHeight * (1 + paddingRatio)
-      const paddedX = containerX - (paddedWidth - containerWidth) / 2
-      const paddedY = containerY - (paddedHeight - containerHeight) / 2
-      ctx.fillStyle = 'white'
-      ctx.fillRect(paddedX, paddedY, paddedWidth, paddedHeight)
+        const hPadding = finalLogoWidth * (logoPlateHorizontalPadding / 100);
+        const vPadding = finalLogoHeight * (logoPlateVerticalPadding / 100);
+
+        const plateWidth = finalLogoWidth + hPadding * 2;
+        const plateHeight = finalLogoHeight + vPadding * 2;
+        const plateX = x - hPadding;
+        const plateY = y - vPadding;
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(plateX, plateY, plateWidth, plateHeight);
     }
 
-    // 4. Draw transformed logo from logoPreviewCanvas onto the export canvas
-    if (logoImage && logoPreviewCanvasRef.current) {
-      const transformedLogoCanvas = logoPreviewCanvasRef.current;
-
-      const transformedLogoRenderWidth = transformedLogoCanvas.width;
-      const transformedLogoRenderHeight = transformedLogoCanvas.height;
-
-      const scaleFactorToFitContainer = Math.min(
-          containerWidth / transformedLogoRenderWidth,
-          containerHeight / transformedLogoRenderHeight
-      );
-
-      const finalLogoWidth = transformedLogoRenderWidth * scaleFactorToFitContainer;
-      const finalLogoHeight = transformedLogoRenderHeight * scaleFactorToFitContainer;
-
-      let x = containerX + (containerWidth - finalLogoWidth) / 2;
-      let y = containerY + (containerHeight - finalLogoHeight) / 2;
-
-      // Apply horizontal and vertical offsets
-      x += (logoHorizontalOffset / 100) * containerWidth; // Offset based on container width
-      y += (logoVerticalOffset / 100) * containerHeight; // Offset based on container height
-
-      ctx.save();
-      ctx.globalCompositeOperation = logoBlendMode;
-      ctx.drawImage(transformedLogoCanvas, x, y, finalLogoWidth, finalLogoHeight);
-      ctx.restore();
-    }
+    // 3. Draw transformed logo
+    ctx.save();
+    ctx.globalCompositeOperation = logoBlendMode;
+    ctx.drawImage(transformedLogoCanvas, x, y, finalLogoWidth, finalLogoHeight);
+    ctx.restore();
 
     const mimeType = `image/${exportSettings.format}`
     let dataUrl = exportCanvas.toDataURL(mimeType, exportSettings.quality)
@@ -638,7 +627,6 @@ export default function PosterWithLogoEditor() {
       dataUrl = setJpegDpi(dataUrl, 300)
     }
 
-    // CRITICAL FIX: Directly convert base64 data URL to Blob to avoid Failed to fetch
     const base64Data = dataUrl.split(',')[1]
     const byteCharacters = atob(base64Data)
     const byteNumbers = new Array(byteCharacters.length)
@@ -663,13 +651,10 @@ export default function PosterWithLogoEditor() {
   const dashOffset = circumference - (progress / 100) * circumference
 
   return (
-    // Outer container: transparent on large screens (AuthBackground shows), black on mobile
     <div className="flex flex-col h-full bg-transparent md:bg-black">
-      {/* Header for this specific page */}
       <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 lg:mb-8">
         <div className="flex items-center justify-between w-full lg:w-auto">
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">SSI Studios</h1>
-          {/* Mobile hamburger button, controlled locally */}
           <button
             onClick={toggleSidebar}
             className="p-2 text-gray-400 hover:text-white lg:hidden focus:outline-none focus:ring-2 focus:ring-green-500 rounded-md"
@@ -681,9 +666,7 @@ export default function PosterWithLogoEditor() {
         <p className="text-gray-400 mt-2 lg:mt-1 lg:ml-auto">Bring your vision to life. Upload a logo to begin.</p>
       </header>
 
-      {/* Main Grid Layout for Editor */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Panel: Upload and Controls */}
         <div className="lg:col-span-1 bg-[#1a1b1f] border border-gray-700/50 rounded-xl p-6 flex flex-col gap-8 shadow-lg">
           <div className="pb-4 border-b border-gray-700/50">
             <h2 className="text-xl font-semibold text-white mb-4">1. Logo Source</h2>
@@ -709,150 +692,67 @@ export default function PosterWithLogoEditor() {
           <div className={`flex-1 transition-opacity duration-500 ${!logoImage ? 'opacity-30 pointer-events-none' : ''}`}>
             <h2 className="text-xl font-semibold text-white mb-4">2. Transformations</h2>
             <div className="space-y-6">
-              {/* Logo Zoom (within container) */}
+              {/* All existing sliders */}
               <div>
                 <label htmlFor="logo-zoom" className="block font-medium text-gray-300 text-sm mb-2">
                   Zoom/Fit: {logoZoom}%
                 </label>
-                <input
-                  id="logo-zoom"
-                  type="range"
-                  min="10"
-                  max="200"
-                  value={logoZoom}
-                  onChange={(e) => setLogoZoom(Number(e.target.value))}
-                  disabled={!logoImage}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider"
-                />
+                <input id="logo-zoom" type="range" min="10" max="200" value={logoZoom} onChange={(e) => setLogoZoom(Number(e.target.value))} disabled={!logoImage} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider" />
               </div>
 
-              {/* Logo Rotation */}
               <div>
                 <label htmlFor="logo-rotation" className="block font-medium text-gray-300 text-sm mb-2">
                   Rotation: {logoRotation}°
                 </label>
-                <input
-                  id="logo-rotation"
-                  type="range"
-                  min="-180"
-                  max="180"
-                  value={logoRotation}
-                  onChange={(e) => setLogoRotation(Number(e.target.value))}
-                  disabled={!logoImage}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider"
-                />
+                <input id="logo-rotation" type="range" min="-180" max="180" value={logoRotation} onChange={(e) => setLogoRotation(Number(e.target.value))} disabled={!logoImage} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider" />
               </div>
 
-              {/* Logo Opacity */}
               <div>
                 <label htmlFor="logo-opacity" className="block font-medium text-gray-300 text-sm mb-2">
                   Opacity: {logoOpacity}%
                 </label>
-                <input
-                  id="logo-opacity"
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={logoOpacity}
-                  onChange={(e) => setLogoOpacity(Number(e.target.value))}
-                  disabled={!logoImage}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider"
-                />
+                <input id="logo-opacity" type="range" min="0" max="100" value={logoOpacity} onChange={(e) => setLogoOpacity(Number(e.target.value))} disabled={!logoImage} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider" />
               </div>
 
-              {/* Logo Corner Radius */}
               <div>
                 <label htmlFor="logo-radius" className="block font-medium text-gray-300 text-sm mb-2">
                   Corner Radius: {logoRadius}px
                 </label>
-                <input
-                  id="logo-radius"
-                  type="range"
-                  min="0"
-                  max="50"
-                  value={logoRadius}
-                  onChange={(e) => setLogoRadius(Number(e.target.value))}
-                  disabled={!logoImage}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider"
-                />
+                <input id="logo-radius" type="range" min="0" max="50" value={logoRadius} onChange={(e) => setLogoRadius(Number(e.target.value))} disabled={!logoImage} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider" />
               </div>
 
-              {/* Horizontal Offset */}
               <div>
                 <label htmlFor="logo-horizontal-offset" className="block font-medium text-gray-300 text-sm mb-2">
                   Horizontal Offset: {logoHorizontalOffset}%
                 </label>
-                <input
-                  id="logo-horizontal-offset"
-                  type="range"
-                  min="-50"
-                  max="50"
-                  value={logoHorizontalOffset}
-                  onChange={(e) => setLogoHorizontalOffset(Number(e.target.value))}
-                  disabled={!logoImage}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider"
-                />
+                <input id="logo-horizontal-offset" type="range" min="-50" max="50" value={logoHorizontalOffset} onChange={(e) => setLogoHorizontalOffset(Number(e.target.value))} disabled={!logoImage} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider" />
               </div>
 
-              {/* Vertical Offset */}
               <div>
                 <label htmlFor="logo-vertical-offset" className="block font-medium text-gray-300 text-sm mb-2">
                   Vertical Offset: {logoVerticalOffset}%
                 </label>
-                <input
-                  id="logo-vertical-offset"
-                  type="range"
-                  min="-50"
-                  max="50"
-                  value={logoVerticalOffset}
-                  onChange={(e) => setLogoVerticalOffset(Number(e.target.value))}
-                  disabled={!logoImage}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider"
-                />
+                <input id="logo-vertical-offset" type="range" min="-50" max="50" value={logoVerticalOffset} onChange={(e) => setLogoVerticalOffset(Number(e.target.value))} disabled={!logoImage} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider" />
               </div>
 
-              {/* Logo Border */}
               <div>
                 <label htmlFor="logo-border-width" className="block font-medium text-gray-300 text-sm mb-2">
                   Border Width: {logoBorderWidth}px
                 </label>
-                <input
-                  id="logo-border-width"
-                  type="range"
-                  min="0"
-                  max="20"
-                  value={logoBorderWidth}
-                  onChange={(e) => setLogoBorderWidth(Number(e.target.value))}
-                  disabled={!logoImage}
-                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider"
-                />
+                <input id="logo-border-width" type="range" min="0" max="20" value={logoBorderWidth} onChange={(e) => setLogoBorderWidth(Number(e.target.value))} disabled={!logoImage} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider" />
                 <div className="mt-2">
                   <label htmlFor="logo-border-color" className="block font-medium text-gray-300 text-sm mb-2">
                     Border Color:
                   </label>
-                  <input
-                    id="logo-border-color"
-                    type="color"
-                    value={logoBorderColor}
-                    onChange={(e) => setLogoBorderColor(e.target.value)}
-                    disabled={!logoImage || logoBorderWidth === 0}
-                    className="w-full h-10 border border-gray-600 rounded-md cursor-pointer"
-                  />
+                  <input id="logo-border-color" type="color" value={logoBorderColor} onChange={(e) => setLogoBorderColor(e.target.value)} disabled={!logoImage || logoBorderWidth === 0} className="w-full h-10 border border-gray-600 rounded-md cursor-pointer" />
                 </div>
               </div>
 
-              {/* Blend Mode */}
               <div>
                 <label htmlFor="blend-mode" className="block font-medium text-gray-300 text-sm mb-2">
                   Blend Mode:
                 </label>
-                <select
-                  id="blend-mode"
-                  value={logoBlendMode}
-                  onChange={(e) => setLogoBlendMode(e.target.value as BlendMode)}
-                  disabled={!logoImage}
-                  className="w-full bg-gray-900 border border-gray-600 text-gray-100 text-sm rounded-md px-4 py-2 cursor-pointer outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 hover:border-gray-500 transition-colors"
-                >
+                <select id="blend-mode" value={logoBlendMode} onChange={(e) => setLogoBlendMode(e.target.value as BlendMode)} disabled={!logoImage} className="w-full bg-gray-900 border border-gray-600 text-gray-100 text-sm rounded-md px-4 py-2 cursor-pointer outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 hover:border-gray-500 transition-colors">
                   {BLEND_MODES.map((mode) => (
                     <option key={mode} value={mode}>
                       {mode.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
@@ -861,40 +761,53 @@ export default function PosterWithLogoEditor() {
                 </select>
               </div>
 
-              {/* Logo Background Plate */}
+              {/* Logo Background Plate Section */}
               <div>
                 <label htmlFor="background-select" className="block font-medium text-gray-300 text-sm mb-2">
                   Logo Background Plate
                 </label>
-                <select
-                  id="background-select"
-                  value={backgroundType}
-                  onChange={(e) => setBackgroundType(e.target.value as 'original' | 'white')}
-                  disabled={!logoImage}
-                  className="w-full bg-gray-900 border border-gray-600 text-gray-100 text-sm rounded-md px-4 py-2 cursor-pointer outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 hover:border-gray-500 transition-colors"
-                >
+                <select id="background-select" value={backgroundType} onChange={(e) => setBackgroundType(e.target.value as 'original' | 'white')} disabled={!logoImage} className="w-full bg-gray-900 border border-gray-600 text-gray-100 text-sm rounded-md px-4 py-2 cursor-pointer outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 hover:border-gray-500 transition-colors">
                   <option value="original">Transparent (No Plate)</option>
                   <option value="white">White Plate</option>
                 </select>
+                
+                {/* *** NEW: Conditional controls for white plate padding *** */}
+                <AnimatePresence>
+                  {backgroundType === 'white' && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto', marginTop: '1.5rem' }}
+                      exit={{ opacity: 0, height: 0, marginTop: '0rem' }}
+                      className="overflow-hidden"
+                    >
+                      <div className="space-y-4 pt-4 border-t border-gray-700/50">
+                        <div>
+                          <label htmlFor="plate-h-padding" className="block font-medium text-gray-400 text-xs mb-2">
+                            Plate Horizontal Padding: {logoPlateHorizontalPadding}%
+                          </label>
+                          <input id="plate-h-padding" type="range" min="0" max="100" value={logoPlateHorizontalPadding} onChange={(e) => setLogoPlateHorizontalPadding(Number(e.target.value))} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider" />
+                        </div>
+                        <div>
+                          <label htmlFor="plate-v-padding" className="block font-medium text-gray-400 text-xs mb-2">
+                            Plate Vertical Padding: {logoPlateVerticalPadding}%
+                          </label>
+                          <input id="plate-v-padding" type="range" min="0" max="100" value={logoPlateVerticalPadding} onChange={(e) => setLogoPlateVerticalPadding(Number(e.target.value))} className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-slider" />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </div>
 
           <div className="mt-auto flex flex-col gap-4 pt-4 border-t border-gray-700/50">
-            <button
-              onClick={handleGenerateClick}
-              disabled={!logoImage || generating}
-              className="flex items-center justify-center gap-3 bg-[#4CAF50] hover:bg-[#45a049] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold px-8 py-3 rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-[#4CAF50]/40"
-            >
+            <button onClick={handleGenerateClick} disabled={!logoImage || generating} className="flex items-center justify-center gap-3 bg-[#4CAF50] hover:bg-[#45a049] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold px-8 py-3 rounded-lg transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-[#4CAF50]/40">
               <AiOutlineDownload size={22} />
               {generating ? 'Exporting...' : 'Export Poster'}
             </button>
             {logoImage && (
-              <button
-                onClick={handleReset}
-                disabled={uploading || generating}
-                className="flex items-center justify-center gap-2 bg-[#FFC107] hover:bg-[#e0a800] disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 font-medium px-5 py-2 rounded-lg transition-all duration-300 text-sm shadow-md"
-              >
+              <button onClick={handleReset} disabled={uploading || generating} className="flex items-center justify-center gap-2 bg-[#FFC107] hover:bg-[#e0a800] disabled:opacity-50 disabled:cursor-not-allowed text-gray-900 font-medium px-5 py-2 rounded-lg transition-all duration-300 text-sm shadow-md">
                 <AiOutlineReload size={18} />
                 Reset All Adjustments
               </button>
@@ -902,66 +815,39 @@ export default function PosterWithLogoEditor() {
           </div>
         </div>
 
-        {/* Right Panel: Main Preview and Logo-Only Preview */}
         <div className="lg:col-span-2 relative w-full h-full min-h-[60vh] flex flex-col gap-6">
-          {/* Main Combined Preview Card */}
           <div className="relative w-full aspect-video rounded-xl border border-gray-700/50 overflow-hidden shadow-2xl shadow-black/30 bg-[#1a1b1f] flex items-center justify-center">
-            <canvas
-              ref={combinedCanvasRef}
-              className="absolute inset-0 w-full h-full"
-            />
+            <canvas ref={combinedCanvasRef} className="absolute inset-0 w-full h-full" />
             {!baseImage && (
-                <div className="flex items-center justify-center text-gray-500 text-xl font-semibold">
-                    Loading base image...
-                </div>
+              <div className="flex items-center justify-center text-gray-500 text-xl font-semibold">
+                Loading base image...
+              </div>
             )}
             {!logoImage && baseImage && (
-                <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-xl font-semibold bg-black/50">
-                    Upload a logo to start editing.
-                </div>
+              <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-xl font-semibold bg-black/50">
+                Upload a logo to start editing.
+              </div>
             )}
           </div>
 
-          {/* New: Logo-Only Preview Card */}
           <div className={`relative w-full aspect-video rounded-xl border border-gray-700/50 overflow-hidden shadow-2xl shadow-black/30 ${logoImage ? 'bg-[#1a1b1f]' : 'bg-transparent'} flex items-center justify-center`}>
             <h3 className="absolute top-4 left-4 text-sm font-semibold text-gray-400 z-10">Logo Preview (Transparent Background)</h3>
-            <canvas
-              ref={logoPreviewCanvasRef}
-              className="absolute inset-0 w-full h-full"
-            />
+            <canvas ref={logoPreviewCanvasRef} className="absolute inset-0 w-full h-full" />
             {!logoImage && (
-                <div className="flex items-center justify-center text-gray-500 text-lg font-semibold bg-black/50">
-                    Logo preview will appear here.
-                </div>
+              <div className="flex items-center justify-center text-gray-500 text-lg font-semibold bg-black/50">
+                Logo preview will appear here.
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Upload/Generating Animations (unchanged) */}
       <AnimatePresence>
         {showUploadAnimation && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm">
             <svg className="w-24 h-24 mb-4 text-gray-400" viewBox="0 0 100 100" aria-label="Loading progress">
               <circle cx="50" cy="50" r="44" stroke="currentColor" strokeWidth="8" fill="none" opacity="0.25" />
-              <motion.circle
-                cx="50"
-                cy="50"
-                r="44"
-                stroke="#4CAF50" // Changed color
-                strokeWidth="8"
-                fill="none"
-                strokeDasharray={circumference}
-                strokeDashoffset={dashOffset}
-                strokeLinecap="round"
-                style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}
-                className="animate-pulse"
-              />
+              <motion.circle cx="50" cy="50" r="44" stroke="#4CAF50" strokeWidth="8" fill="none" strokeDasharray={circumference} strokeDashoffset={dashOffset} strokeLinecap="round" style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }} className="animate-pulse" />
             </svg>
             <p className="text-gray-200 text-lg font-semibold select-none">UPLOADING... {progress}%</p>
           </motion.div>
@@ -970,32 +856,15 @@ export default function PosterWithLogoEditor() {
 
       <AnimatePresence>
         {showExportModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#1a1b1f] border border-gray-700 rounded-xl shadow-2xl w-full max-w-md p-6" // Changed bg color
-            >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-[#1a1b1f] border border-gray-700 rounded-xl shadow-2xl w-full max-w-md p-6">
               <h2 className="text-2xl font-bold text-white mb-6">Export Settings</h2>
               <div className="space-y-4">
                 <div>
                   <label htmlFor="export-format" className="block font-medium text-gray-300 text-sm mb-2">
                     Format
                   </label>
-                  <select
-                    id="export-format"
-                    value={exportSettings.format}
-                    onChange={(e) =>
-                      setExportSettings({ ...exportSettings, format: e.target.value as ExportFormat })
-                    }
-                    className="w-full bg-gray-900 border border-gray-600 text-gray-100 text-sm rounded-md px-4 py-2 cursor-pointer outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 hover:border-gray-500 transition-colors"
-                  >
+                  <select id="export-format" value={exportSettings.format} onChange={(e) => setExportSettings({ ...exportSettings, format: e.target.value as ExportFormat })} className="w-full bg-gray-900 border border-gray-600 text-gray-100 text-sm rounded-md px-4 py-2 cursor-pointer outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 hover:border-gray-500 transition-colors">
                     <option value="png">PNG (Lossless, Large File)</option>
                     <option value="jpeg">JPEG (Max Quality, 300 DPI)</option>
                   </select>
@@ -1004,17 +873,7 @@ export default function PosterWithLogoEditor() {
                   <label htmlFor="export-resolution" className="block font-medium text-gray-300 text-sm mb-2">
                     Resolution
                   </label>
-                  <select
-                    id="export-resolution"
-                    value={exportSettings.resolution.name}
-                    onChange={(e) =>
-                      setExportSettings({
-                        ...exportSettings,
-                        resolution: RESOLUTIONS.find((r) => r.name === e.target.value) || RESOLUTIONS[0]
-                      })
-                    }
-                    className="w-full bg-gray-900 border border-gray-600 text-gray-100 text-sm rounded-md px-4 py-2 cursor-pointer outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 hover:border-gray-500 transition-colors"
-                  >
+                  <select id="export-resolution" value={exportSettings.resolution.name} onChange={(e) => setExportSettings({ ...exportSettings, resolution: RESOLUTIONS.find((r) => r.name === e.target.value) || RESOLUTIONS[0] })} className="w-full bg-gray-900 border border-gray-600 text-gray-100 text-sm rounded-md px-4 py-2 cursor-pointer outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 hover:border-gray-500 transition-colors">
                     {RESOLUTIONS.map((r) => (
                       <option key={r.name} value={r.name}>
                         {r.name}
@@ -1027,16 +886,10 @@ export default function PosterWithLogoEditor() {
                 </p>
               </div>
               <div className="mt-8 flex justify-end gap-4">
-                <button
-                  onClick={() => setShowExportModal(false)}
-                  className="bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold px-4 py-2 rounded-lg transition-colors"
-                >
+                <button onClick={() => setShowExportModal(false)} className="bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold px-4 py-2 rounded-lg transition-colors">
                   Cancel
                 </button>
-                <button
-                  onClick={executeExport}
-                  className="bg-[#4CAF50] hover:bg-[#45a049] text-white font-bold px-6 py-2 rounded-lg transition-colors" // Changed color
-                >
+                <button onClick={executeExport} className="bg-[#4CAF50] hover:bg-[#45a049] text-white font-bold px-6 py-2 rounded-lg transition-colors">
                   Export Now
                 </button>
               </div>
@@ -1054,7 +907,7 @@ export default function PosterWithLogoEditor() {
           height: 8px;
           background: #3b3b3b;
           outline: none;
-          opacity: 0.8; /* Slightly less opaque for professional feel */
+          opacity: 0.8;
           transition: opacity .2s;
           border-radius: 4px;
         }
@@ -1068,7 +921,7 @@ export default function PosterWithLogoEditor() {
           appearance: none;
           width: 18px;
           height: 18px;
-          background: #4CAF50; /* Green accent color */
+          background: #4CAF50;
           border-radius: 50%;
           cursor: pointer;
           border: 2px solid #ffffff;
@@ -1084,7 +937,7 @@ export default function PosterWithLogoEditor() {
         .range-slider::-moz-range-thumb {
           width: 18px;
           height: 18px;
-          background: #4CAF50; /* Green accent color */
+          background: #4CAF50;
           border-radius: 50%;
           cursor: pointer;
           border: 2px solid #ffffff;
