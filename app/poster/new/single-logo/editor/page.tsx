@@ -668,7 +668,7 @@ export default function PosterWithLogoEditor() {
       {/* Header for this specific page */}
       <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 lg:mb-8">
         <div className="flex items-center justify-between w-full lg:w-auto">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">Creative Studio</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">SSI Studios</h1>
           {/* Mobile hamburger button, controlled locally */}
           <button
             onClick={toggleSidebar}
