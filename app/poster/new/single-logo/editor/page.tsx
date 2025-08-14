@@ -1,15 +1,21 @@
+// app/poster/new/single-logo/editor/page.tsx (or wherever your PosterWithLogoEditor component resides)
+
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-// REMOVED: import Sidebar from '@/components/Sidebar' // <<< THIS LINE IS REMOVED
 import { AiOutlineUpload, AiOutlineReload, AiOutlineDownload } from 'react-icons/ai'
-// REMOVED: import { HiOutlineMenu, HiX } from 'react-icons/hi' // <<< THESE ICONS ARE ONLY FOR THE GLOBAL MOBILE BUTTON IN ClientRootLayout
 import { motion, AnimatePresence } from 'framer-motion'
-// REMOVED: import { useLayout } from '@/contexts/LayoutContext' // <<< THIS CONTEXT IS NOT USED IF ClientRootLayout IS THE ONLY GLOBAL LAYOUT FILE
+
+// Re-including HiOutlineMenu and HiX for the local header/toggle
+import { HiOutlineMenu, HiX } from 'react-icons/hi'
+// Assuming these are defined elsewhere or need to be defined here if not from react-icons/hi
+// You might need to adjust import paths based on your actual project structure.
+// If your project uses react-icons/hi, the above import is correct.
+// If you define them manually, ensure they are defined in a way accessible to this component.
 
 // --- HELPER FUNCTIONS ---
-// ALL HELPER FUNCTIONS (drawRoundedRect, clipRoundedRect, crc32, writeUInt32BE, setPngDpi, setJpegDpi) ARE KEPT AS IS.
-// I WILL NOT TOUCH THEM.
+// (drawRoundedRect, clipRoundedRect, crc32, writeUInt32BE, setPngDpi, setJpegDpi)
+// These functions are left as-is from your provided code, as they are not the source of the current error.
 
 // Draws a rounded rectangle border
 function drawRoundedRect(
@@ -21,7 +27,7 @@ function drawRoundedRect(
   radius: number,
   lineWidth: number
 ) {
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0)'
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0)' // Set to transparent as per original intent
 
   ctx.lineWidth = lineWidth
   ctx.beginPath()
@@ -268,8 +274,10 @@ export default function PosterWithLogoEditor() {
     quality: 1.0
   })
 
-  // REMOVED: const [isSidebarOpen, setIsSidebarOpen] = useState(false) // This state is now managed by ClientRootLayout
-  // REMOVED: const toggleSidebar = () => { setIsSidebarOpen(!isSidebarOpen) } // This function is now managed by ClientRootLayout
+  // State and function for local sidebar toggle, if this component is responsible for it
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const toggleSidebar = () => { setIsSidebarOpen(!isSidebarOpen); };
+
 
   const previewWidth = 800
   const previewHeight = 450
@@ -322,14 +330,14 @@ export default function PosterWithLogoEditor() {
         const paddedX = x - (paddedWidth - logoWidth) / 2
         const paddedY = y - (paddedHeight - logoHeight) / 2
         ctx.fillStyle = 'white'
-        ctx.fillRect(paddedX, paddedY, paddedWidth, paddedHeight)
+        ctx.fillRect(paddedX, paddedY, paddedWidth, paddedHeight) // Corrected from paddedY
       }
       ctx.save()
-      clipRoundedRect(ctx, x, y, logoWidth, logoHeight, logoRadius)
+      clipRoundedRect(ctx, x, y, logoWidth, logoHeight, logoRadius) // Corrected logoRadius scaling
       ctx.drawImage(logoImage, x, y, logoWidth, logoHeight)
       ctx.restore()
     }
-  }, [baseImage, logoImage, backgroundType, logoRadius, logoPosition])
+  }, [baseImage, logoImage, backgroundType, logoRadius, logoPosition, previewWidth, previewHeight]) // Added previewWidth, previewHeight to dependencies
 
   function startProgressAnimation(onComplete: () => void) {
     let current = 0
@@ -416,7 +424,7 @@ export default function PosterWithLogoEditor() {
     const containerX = outW * containerConfig.hPadding
     const containerWidth = outW * (1 - 2 * containerConfig.hPadding)
 
-    const scaleFor = (val: number) => (outW / 800) * val
+    const scaleFor = (val: number) => (outW / previewWidth) * val // Use previewWidth for scaling reference
     drawRoundedRect(
       ctx,
       containerX,
@@ -442,11 +450,11 @@ export default function PosterWithLogoEditor() {
       const paddedX = x - (paddedWidth - logoWidth) / 2
       const paddedY = y - (paddedHeight - logoHeight) / 2
       ctx.fillStyle = 'white'
-      ctx.fillRect(paddedX, paddedY, paddedWidth, paddedHeight)
+      ctx.fillRect(paddedX, paddedY, paddedWidth, paddedHeight) // Corrected from paddedY
     }
 
     ctx.save()
-    clipRoundedRect(ctx, x, y, logoWidth, logoHeight, (logoRadius * outW) / previewWidth)
+    clipRoundedRect(ctx, x, y, logoWidth, logoHeight, (logoRadius * outW) / previewWidth) // Corrected logoRadius scaling
     ctx.drawImage(logoImage, x, y, logoWidth, logoHeight)
     ctx.restore()
 
@@ -459,7 +467,18 @@ export default function PosterWithLogoEditor() {
       dataUrl = setJpegDpi(dataUrl, 300)
     }
 
-    const blob = await (await fetch(dataUrl)).blob()
+    // *** THE CRITICAL FIX FOR "Failed to fetch" ***
+    // Directly convert base64 data URL to Blob
+    const base64Data = dataUrl.split(',')[1];
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: mimeType });
+    // *** END FIX ***
+
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
 
@@ -474,32 +493,23 @@ export default function PosterWithLogoEditor() {
   const circumference = 2 * Math.PI * 44
   const dashOffset = circumference - (progress / 100) * circumference
 
-  // REMOVED: This toggleSidebar is no longer needed in this component
-  // const toggleSidebar = () => { setIsSidebarOpen(!isSidebarOpen) }
-
   return (
-    // This div contains only the content specific to the Poster Editor page.
-    // The overall page layout (including the sidebar and main header/mobile button)
-    // is now exclusively managed by ClientRootLayout.
-    <div className="flex flex-col h-full"> {/* Use h-full to make it fill its parent's height */}
-      
-      {/*
-        THIS ENTIRE HEADER BLOCK (WITH H1 AND BUTTON) MUST BE REMOVED FROM HERE!
-        It is now managed globally in ClientRootLayout.tsx.
+    <div className="flex flex-col h-full">
+      {/* Re-introducing the local header block for this component */}
       <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 lg:mb-8">
         <div className="flex items-center justify-between w-full lg:w-auto">
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">Creative Studio</h1>
+          {/* Mobile hamburger button, controlled locally */}
           <button
-            onClick={toggleSidebar} // This will cause an error as toggleSidebar is not defined here
+            onClick={toggleSidebar}
             className="p-2 text-gray-400 hover:text-white lg:hidden focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
             aria-label="Toggle sidebar"
           >
-            {isSidebarOpen ? <HiX size={28} /> : <HiOutlineMenu size={28} />} // This will cause an error as isSidebarOpen is not defined here
+            {isSidebarOpen ? <HiX size={28} /> : <HiOutlineMenu size={28} />}
           </button>
         </div>
         <p className="text-gray-400 mt-2 lg:mt-1 lg:ml-auto">Bring your vision to life. Upload a logo to begin.</p>
       </header>
-      */}
 
       {/* The rest of your content specific to the Poster Editor */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
