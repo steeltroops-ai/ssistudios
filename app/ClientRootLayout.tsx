@@ -2,17 +2,16 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import Sidebar from '@/components/Sidebar' // Correctly import your existing Sidebar component
+import Sidebar from '@/components/Sidebar'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
-import { ReactNode, useState, useEffect } from 'react' // Import useState, useEffect
-import { motion } from 'framer-motion' // For animations
-import { HiOutlineMenu, HiX } from 'react-icons/hi' // Used here for the global mobile button
+import { ReactNode, useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { HiOutlineMenu, HiX } from 'react-icons/hi'
 
-// --- AnimatedHamburgerIcon (defined directly in ClientRootLayout) ---
-// FIXED: Simpler type definition for MotionLineProps to resolve x1/y1 errors
+// --- AnimatedHamburgerIcon ---
 type MotionLineProps = React.ComponentPropsWithoutRef<'line'> & {
-  variants?: any; // Add variants if you pass them directly for motion components
-  [key: string]: any; // Allow any other props that line elements might take
+  variants?: any;
+  [key: string]: any;
 };
 const MotionLine = motion.line as React.FC<MotionLineProps>
 
@@ -91,17 +90,13 @@ const AnimatedHamburgerIcon = ({
 function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const { isAuthenticated } = useAuth()
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false) // Centralized state for sidebar toggle
-
-  // Logic to force the active state for specific pages.
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const forceActive = pathname === '/selector' ? 'Dashboard' : undefined
 
-  // Function to toggle sidebar visibility, shared across the app
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen)
   }
 
-  // Effect to manage body scroll when sidebar is open on mobile
   useEffect(() => {
     if (isSidebarOpen) {
       document.body.style.overflow = 'hidden'
@@ -115,7 +110,7 @@ function AppLayout({ children }: { children: ReactNode }) {
 
 
   if (!isAuthenticated && pathname !== '/login') {
-    return null // AuthProvider handles the redirect
+    return null
   }
 
   return (
@@ -125,12 +120,11 @@ function AppLayout({ children }: { children: ReactNode }) {
           <Sidebar forceActive={forceActive} isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
           
           <main
-            className={`flex-1 overflow-y-auto bg-white transition-all duration-300 lg:ml-64 p-4 lg:p-8`}
+            className={`flex-1 overflow-y-auto bg-gray-200 transition-all duration-300 p-4 lg:p-8`}
           >
             {/*
-              GLOBAL MOBILE HEADER WITH HAMBURGER BUTTON:
+              GLOBAL MOBILE HEADER:
               This header is now part of the main layout, ensuring only ONE mobile menu button for the ENTIRE APP.
-              It will display relevant titles based on the current path.
               It's hidden on large screens (`lg:hidden`).
             */}
             <div className="flex items-center justify-between mb-6 lg:hidden">
