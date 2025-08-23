@@ -46,13 +46,14 @@ export default function DashboardHeader() {
           'relative mx-auto mt-6 flex items-center justify-center rounded-full backdrop-blur-xl overflow-hidden',
           'animate-gemini-flow',
           'border border-white/10 shadow-[0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_2px_rgba(255,255,255,0.1)]',
-          'transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]',
+          'transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)]',
           isHovered && 'shadow-[0_8px_24px_rgba(0,0,0,0.4)]'
         )}
         style={{
-          // MODIFIED: Reduced size for a sleeker look.
-          width: isExpanded ? 'clamp(300px, 50vw, 640px)' : 120,
-          padding: '5px',
+          // FIX: Reduced expanded width for a more compact look
+          width: isExpanded ? 'clamp(250px, 40vw, 500px)' : 120,
+          // FIX: Decreased padding to reduce height
+          padding: '4px',
         }}
       >
         {/* FIX: Wrapper for all expanded content that fades out together. */}
