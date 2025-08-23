@@ -228,7 +228,8 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
         )}
       </nav>
 
-      <div className="flex-shrink-0 p-4 border-t border-gray-800/50 w-full">
+      {/* FIX: Uplifted Logout button container for better mobile visibility */}
+      <div className="flex-shrink-0 p-4 border-t border-gray-800/50 w-full mt-auto">
         <div className="text-gray-500 text-xs mb-3 text-center select-none">
           SSI STUDIOS v.1.08.25
         </div>
@@ -277,10 +278,11 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
               initial={{ x: '-100%' }}
               animate={{ x: '0%' }}
               exit={{ x: '-100%' }}
+              // FIXED: Smoother spring transition
               transition={{ 
                 type: "spring",
-                stiffness: 200, 
-                damping: 25 
+                stiffness: 250, 
+                damping: 35 
               }}
               className="relative w-[85%] max-w-sm h-full"
             >
