@@ -15,6 +15,7 @@ import {
   Layout,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { useRouter, usePathname } from 'next/navigation' // 1. Import Next.js navigation hooks
 
 // --- Menu Data ---
 type MenuItem = {
@@ -26,13 +27,14 @@ type MenuItem = {
   mobileOnly?: boolean
 }
 
+// (Menu data remains the same)
 const menu: MenuItem[] = [
   { name: 'Dashboard', icon: Home, path: '/dashboard' },
   {
     name: 'Posters',
     icon: Layout,
     children: [
-      { name: 'Upload Templates', path: '/posters/upload' },
+      { name: 'Upload Templates', path: '/poster/upload' },
       { name: 'Single Logo Editor', path: '/poster/new/single-logo/editor' },
       { name: 'Multiple Logos Editor', path: '/poster/multiple-logo-editor' },
     ],
@@ -81,15 +83,13 @@ type SidebarProps = {
 
 export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarProps) {
   const { logout } = useAuth()
-  const [pathname, setPathname] = useState('')
+  const router = useRouter() // 2. Initialize the router
+  const pathname = usePathname() // 3. Get the current path reliably
   const [expanded, setExpanded] = useState<string[]>([])
   const [isHovered, setIsHovered] = useState(false)
 
   useEffect(() => {
-    if (typeof window !== 'undefined') setPathname(window.location.pathname)
-  }, [])
-
-  useEffect(() => {
+    // Automatically expand the parent of the active page
     const expandedParents = menu
       .filter(
         (item) =>
@@ -101,10 +101,6 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
 
   const toggle = (name: string) =>
     setExpanded((prev) => (prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]))
-
-  const navigate = (path: string) => {
-    if (typeof window !== 'undefined') window.location.href = path
-  }
 
   const isParentActive = (item: MenuItem) => {
     if (forceActive) return item.name === forceActive
@@ -148,6 +144,7 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
           return (
             <div key={item.name} className="mb-1.5">
               <button
+                // 4. Update the onClick handler for navigation
                 onClick={() => {
                   if (item.name === 'Logout') {
                     handleLogout()
@@ -156,8 +153,8 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
                   if (item.children) {
                     toggle(item.name)
                   } else if (item.path && item.path !== pathname) {
-                    navigate(item.path)
-                    toggleSidebar()
+                    router.push(item.path) // Use router for navigation
+                    if (isOpen) toggleSidebar() // Close mobile sidebar on navigate
                   }
                 }}
                 className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-lg transition-all duration-200 relative
@@ -220,8 +217,8 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
                         key={child.path}
                         onClick={() => {
                           if (child.path !== pathname) {
-                            navigate(child.path)
-                            toggleSidebar()
+                            router.push(child.path) // Use router for child navigation too
+                            if (isOpen) toggleSidebar()
                           }
                         }}
                         className={`block w-full text-left px-3 py-2 text-sm rounded-md transition-colors duration-200 mb-1
