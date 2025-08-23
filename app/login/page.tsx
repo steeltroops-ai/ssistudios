@@ -1,4 +1,3 @@
-
 // =========================================================================
 // app/login/page.tsx
 // UPDATED: This page is now much simpler. It only handles the form submission.
@@ -45,7 +44,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white md:bg-transparent relative">
+    <div className="min-h-screen flex items-center justify-center bg-transparent relative">
       <div className="hidden md:block absolute inset-0">
         <AuthBg />
       </div>
@@ -63,9 +62,9 @@ export default function LoginPage() {
       )}
 
       <div className="relative z-10 w-full max-w-sm rounded-xl shadow-lg p-8
-                        bg-white md:bg-gray-800/20 md:backdrop-blur-md
-                        border border-gray-200 md:border-gray-700/50
-                        md:text-gray-100">
+                     bg-white md:bg-gray-800/20 md:backdrop-blur-md
+                     border border-gray-200 md:border-gray-700/50
+                     md:text-gray-100">
         <h1 className="text-2xl font-semibold text-gray-900 md:text-gray-100 mb-2 text-center">
           SSI Studios Admin
         </h1>
@@ -87,9 +86,9 @@ export default function LoginPage() {
             <input
               type="text"
               className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2
-                                 text-gray-900 md:text-white
-                                 focus:outline-none focus:ring-2 focus:ring-black md:focus:ring-blue-300
-                                 bg-white md:bg-gray-900/30 md:border-gray-700/50"
+                         text-gray-900 md:text-white
+                         focus:outline-none focus:ring-2 focus:ring-black md:focus:ring-blue-300
+                         bg-white md:bg-gray-900/30 md:border-gray-700/50"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter your username"
@@ -104,9 +103,9 @@ export default function LoginPage() {
             <input
               type="password"
               className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2
-                                 text-gray-900 md:text-white
-                                 focus:outline-none focus:ring-2 focus:ring-black md:focus:ring-blue-300
-                                 bg-white md:bg-gray-900/30 md:border-gray-700/50"
+                         text-gray-900 md:text-white
+                         focus:outline-none focus:ring-2 focus:ring-black md:focus:ring-blue-300
+                         bg-white md:bg-gray-900/30 md:border-gray-700/50"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
@@ -117,8 +116,8 @@ export default function LoginPage() {
           <button
             type="submit"
             className="w-full bg-black text-white py-2.5 rounded-lg font-medium hover:bg-gray-800 transition-colors
-                                 disabled:opacity-50 disabled:cursor-not-allowed
-                                 md:bg-gray-800/40 md:border md:border-gray-700/50 md:hover:bg-gray-700/50 md:shadow-inner"
+                         disabled:opacity-50 disabled:cursor-not-allowed
+                         md:bg-gray-800/40 md:border md:border-gray-700/50 md:hover:bg-gray-700/50 md:shadow-inner"
             disabled={isLoading}
           >
             {isLoading ? 'Logging in...' : 'Login'}
