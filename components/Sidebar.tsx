@@ -138,7 +138,7 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
         <Logo />
       </div>
       
-      <nav className="flex-1 px-4 py-4 overflow-y-auto">
+      <nav className="flex-1 px-4 py-4 overflow-y-auto pb-20">
         {menu.map((item) => {
           const Icon = item.icon
           const isOpenMenuItem = expanded.includes(item.name)
@@ -229,7 +229,7 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
       </nav>
 
       {/* FIX: Uplifted Logout button container for better mobile visibility */}
-      <div className="p-4 border-t border-gray-800/50 w-full mt-auto">
+      <div className="p-4 border-t border-gray-800/50 w-full">
         <div className="text-gray-500 text-xs mb-3 text-center select-none">
           SSI STUDIOS v.1.08.25
         </div>
