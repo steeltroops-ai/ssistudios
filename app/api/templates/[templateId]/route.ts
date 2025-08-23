@@ -1,18 +1,14 @@
 // src/app/api/templates/[templateId]/route.ts
 
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import dbConnect from "@/lib/dbconnect";
 import Template from "@/models/Template";
 
-interface RouteContext {
-  params: {
-    templateId: string;
-  };
-}
-
-export async function DELETE(request: NextRequest, context: RouteContext) {
-  const { templateId } = context.params;
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { templateId: string } }
+) {
+  const { templateId } = params;
 
   if (!templateId) {
     return NextResponse.json(
