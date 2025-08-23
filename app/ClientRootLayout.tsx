@@ -3,10 +3,9 @@
 
 import { usePathname } from 'next/navigation'
 import Sidebar from '@/components/Sidebar' // Correctly import your existing Sidebar component
-import AuthBackground from '@/components/backgrounds/AuthBackground'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { ReactNode, useState, useEffect } from 'react' // Import useState, useEffect
-import { motion, AnimatePresence } from 'framer-motion' // For animations
+import { motion } from 'framer-motion' // For animations
 import { HiOutlineMenu, HiX } from 'react-icons/hi' // Used here for the global mobile button
 
 // --- AnimatedHamburgerIcon (defined directly in ClientRootLayout) ---
@@ -121,26 +120,12 @@ function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <AuthBackground />
       {pathname !== '/login' ? (
         <div className="flex relative z-10 min-h-screen">
-          {/*
-            THE ONE AND ONLY SIDEBAR INSTANCE:
-            This is the ONLY place your Sidebar component is rendered.
-            It receives the `isSidebarOpen` state and `toggleSidebar` function from here.
-            The Sidebar component (`@/components/Sidebar`) is assumed to handle its own fixed positioning
-            and responsive display (hidden on mobile by default, shown as overlay when `isOpen` is true).
-          */}
           <Sidebar forceActive={forceActive} isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
           
-          {/*
-            MAIN CONTENT AREA:
-            - `lg:ml-64`: This class is crucial for desktop. It correctly pushes the main content
-              area over to make space for the fixed sidebar on large screens.
-            - `p-4 lg:p-8`: These classes apply consistent padding to the entire content of the page.
-          */}
           <main
-            className={`flex-1 overflow-y-auto bg-transparent transition-all duration-300 lg:ml-64 p-4 lg:p-8`}
+            className={`flex-1 overflow-y-auto bg-white transition-all duration-300 lg:ml-64 p-4 lg:p-8`}
           >
             {/*
               GLOBAL MOBILE HEADER WITH HAMBURGER BUTTON:
@@ -149,28 +134,28 @@ function AppLayout({ children }: { children: ReactNode }) {
               It's hidden on large screens (`lg:hidden`).
             */}
             <div className="flex items-center justify-between mb-6 lg:hidden">
-                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
-                    {/* Dynamic title based on current path for mobile header */}
-                    {pathname === '/dashboard' ? 'Dashboard' : 
-                     pathname.startsWith('/poster/new') ? 'Creative Studio' :
-                     pathname.startsWith('/templates') ? 'Templates' :
-                     pathname.startsWith('/settings') ? 'Settings' :
-                     'App'} {/* Default title */}
-                </h1>
-                <button
-                    onClick={toggleSidebar}
-                    className="p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
-                    aria-label="Toggle sidebar"
-                >
-                    <AnimatedHamburgerIcon isOpen={isSidebarOpen} size={28} />
-                </button>
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+                {/* Dynamic title based on current path for mobile header */}
+                {pathname === '/dashboard' ? 'Dashboard' : 
+                  pathname.startsWith('/poster/new') ? 'Creative Studio' :
+                  pathname.startsWith('/templates') ? 'Templates' :
+                  pathname.startsWith('/settings') ? 'Settings' :
+                  'App'} {/* Default title */}
+              </h1>
+              <button
+                  onClick={toggleSidebar}
+                  className="p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
+                  aria-label="Toggle sidebar"
+              >
+                  <AnimatedHamburgerIcon isOpen={isSidebarOpen} size={28} />
+              </button>
             </div>
 
             {children} {/* This is where your page components (DashboardPage, PosterWithLogoEditor) will be rendered */}
           </main>
         </div>
       ) : (
-        <main className="min-h-screen flex flex-col items-center justify-center relative z-10 px-4">
+        <main className="min-h-screen flex flex-col items-center justify-center relative z-10 px-4 bg-white">
           {children}
         </main>
       )}
