@@ -229,7 +229,7 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
       </nav>
 
       {/* FIX: Uplifted Logout button container for better mobile visibility */}
-      <div className="flex-shrink-0 p-4 border-t border-gray-800/50 w-full mt-auto">
+      <div className="p-4 border-t border-gray-800/50 w-full mt-auto">
         <div className="text-gray-500 text-xs mb-3 text-center select-none">
           SSI STUDIOS v.1.08.25
         </div>
