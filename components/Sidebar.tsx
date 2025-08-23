@@ -19,12 +19,15 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 
-// --- Menu Data (unchanged) ---
+// --- Menu Data (updated with Logout for mobile) ---
 type MenuItem = {
   name: string
   icon: React.ElementType
   path?: string
   children?: { name: string; path: string }[]
+  onClick?: () => void;
+  // A new property to hide the item on large screens (mobile only)
+  mobileOnly?: boolean; 
 }
 
 const menu: MenuItem[] = [
@@ -70,6 +73,8 @@ const menu: MenuItem[] = [
       { name: 'Profile & Preferences', path: '/settings/profile' },
     ],
   },
+  // ADDED: A mobile-only logout button for better accessibility
+  { name: 'Logout', icon: LogOut, mobileOnly: true }
 ]
 
 // --- Sidebar Component (Fixed) ---
@@ -138,8 +143,11 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
         <Logo />
       </div>
       
-      <nav className="flex-1 px-4 py-4 overflow-y-auto pb-20">
+      <nav className="flex-1 px-4 py-4 overflow-y-auto">
         {menu.map((item) => {
+          // New conditional rendering for mobile-only menu items
+          if (item.mobileOnly && !isMobile) return null;
+          
           const Icon = item.icon
           const isOpenMenuItem = expanded.includes(item.name)
           const active = isParentActive(item)
@@ -151,6 +159,10 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
             <div key={item.name} className="mb-1.5">
               <button
                 onClick={() => {
+                  if (item.name === 'Logout') {
+                    handleLogout();
+                    return;
+                  }
                   if (muted) return;
                   if (isForcedActive) return;
 
@@ -165,7 +177,7 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
                 }}
                 className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-lg transition-all duration-200 relative
                   ${active ? 'text-white font-medium' : 'text-gray-400 hover:text-white'}
-                  hover:bg-white/5 active:scale-[0.98] cursor-pointer`}
+                  ${item.name === 'Logout' ? 'text-red-500 hover:bg-red-500/10 hover:text-red-400' : 'hover:bg-white/5 active:scale-[0.98] cursor-pointer'}`}
                 type="button"
                 disabled={muted}
               >
@@ -228,14 +240,16 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
         )}
       </nav>
 
-      {/* FIX: Uplifted Logout button container for better mobile visibility */}
-      <div className="p-4 border-t border-gray-800/50 w-full">
-        <div className="text-gray-500 text-xs mb-3 text-center select-none">
+      {/* FIXED: The logout button is now a part of the menu above on mobile.
+          This footer only contains the version text.
+      */}
+      <div className="p-4 border-t border-gray-800/50 w-full mt-auto hidden lg:block">
+        <div className="text-gray-500 text-xs text-center select-none">
           SSI STUDIOS v.1.08.25
         </div>
         <button
           onClick={handleLogout}
-          className="flex items-center justify-center gap-2 text-sm text-red-500 hover:text-red-400 transition-colors w-full py-2 rounded-lg hover:bg-red-500/10 cursor-pointer"
+          className="flex items-center justify-center gap-2 text-sm text-red-500 hover:text-red-400 transition-colors w-full py-2 rounded-lg hover:bg-red-500/10 cursor-pointer mt-3"
           type="button"
         >
           <LogOut size={16} />
