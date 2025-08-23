@@ -34,7 +34,7 @@ const menu: MenuItem[] = [
     icon: Layout,
     children: [
       { name: 'Upload Templates', path: '/posters/upload' },
-      { name: 'Single Logo Editor', path: '/poster/new/single-logo' },
+      { name: 'Single Logo Editor', path: '/poster/new/single-logo/editor' },
       { name: 'Multiple Logos Editor', path: '/posters/multiple-logo-editor' },
     ],
   },
@@ -80,15 +80,10 @@ type SidebarProps = {
 }
 
 export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarProps) {
-  // FIXED: Destructure the real logout function from the AuthContext
   const { logout } = useAuth();
   
   const [pathname, setPathname] = useState('');
   const [expanded, setExpanded] = useState<string[]>([])
-
-  useEffect(() => {
-    // This effect is not needed here as it's handled in ClientRootLayout
-  }, [isOpen]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -130,7 +125,6 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
   const isChildActive = (path: string) => pathname.startsWith(path)
 
   const handleLogout = () => {
-    // FIXED: Call the actual logout function from useAuth
     logout();
   }
 
@@ -288,7 +282,7 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
                 stiffness: 200, 
                 damping: 25 
               }}
-              className="relative w-64 h-full"
+              className="relative w-[85%] max-w-sm h-full"
             >
               {renderSidebarContent(true)}
             </motion.div>
