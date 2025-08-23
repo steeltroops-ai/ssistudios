@@ -17,6 +17,7 @@ import {
   User,
   FolderOpen
 } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
 // --- Menu Data (unchanged) ---
 type MenuItem = {
@@ -79,10 +80,15 @@ type SidebarProps = {
 }
 
 export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarProps) {
-  const logout = () => { console.log("Logout function called"); };
+  // FIXED: Destructure the real logout function from the AuthContext
+  const { logout } = useAuth();
   
   const [pathname, setPathname] = useState('');
   const [expanded, setExpanded] = useState<string[]>([])
+
+  useEffect(() => {
+    // This effect is not needed here as it's handled in ClientRootLayout
+  }, [isOpen]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -124,6 +130,7 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
   const isChildActive = (path: string) => pathname.startsWith(path)
 
   const handleLogout = () => {
+    // FIXED: Call the actual logout function from useAuth
     logout();
   }
 
