@@ -127,17 +127,6 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
         ${isMobile ? 'w-[85%] max-w-sm' : isDesktopHovered ? 'w-64' : 'w-20'}
       `}
     >
-      {/* BLUR FADE RIGHT EDGE */}
-      <div
-        className={`absolute right-0 top-0 h-full w-8 pointer-events-none 
-          bg-gradient-to-r from-transparent to-[#111214]/70 
-          backdrop-blur-md shadow-[4px_0_15px_rgba(0,0,0,0.5)] 
-          ${isMobile || isDesktopHovered ? 'opacity-100' : 'opacity-0'}
-          transition-opacity duration-300
-        `}
-      />
-
-      {/* Logo */}
       <div className="p-5 h-[72px] border-b border-gray-800/50 flex items-center justify-between overflow-hidden">
         <div
           className={`transition-opacity duration-300 ${
@@ -148,7 +137,6 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
         </div>
       </div>
 
-      {/* Menu */}
       <nav className="flex-1 px-4 py-4 overflow-y-auto">
         {menu.map((item) => {
           if (item.mobileOnly && !isMobile) return null
@@ -174,9 +162,11 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
                 }}
                 className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-lg transition-all duration-200 relative
                   ${active ? 'text-white font-medium' : 'text-gray-400 hover:text-white'}
-                  ${item.name === 'Logout'
-                    ? 'text-red-500 hover:bg-red-500/10 hover:text-red-400'
-                    : 'hover:bg-white/5 active:scale-[0.98] cursor-pointer'}
+                  ${
+                    item.name === 'Logout'
+                      ? 'text-red-500 hover:bg-red-500/10 hover:text-red-400'
+                      : 'hover:bg-white/5 active:scale-[0.98] cursor-pointer'
+                  }
                 `}
                 type="button"
               >
@@ -255,7 +245,6 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
         })}
       </nav>
 
-      {/* Footer */}
       <div
         className={`p-4 border-t border-gray-800/50 w-full mt-auto hidden lg:block transition-opacity duration-300 ${
           isDesktopHovered ? 'opacity-100' : 'opacity-0'
@@ -276,7 +265,6 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
 
   return (
     <>
-      {/* Fonts */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       <link
