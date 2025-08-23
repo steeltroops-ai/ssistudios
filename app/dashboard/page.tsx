@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import PosterCard from '@/components/dashboard/PosterCard'
 import Header from '@/components/dashboard/Header'
-import Sidebar from '@/components/Sidebar' // Import the Sidebar component
 
 export default function DashboardPage() {
   const [cardTitle, setCardTitle] = useState('Welcome to SSI Studio')
@@ -16,7 +15,6 @@ export default function DashboardPage() {
   ])
 
   const [quoteIndex, setQuoteIndex] = useState(0)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false) // State for sidebar toggle
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -31,24 +29,20 @@ export default function DashboardPage() {
     setQuoteIndex(0)
   }
 
-  // Function to toggle sidebar visibility
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen)
-  }
-
   return (
-    <div className="flex"> {/* Use flexbox for layout */}
-      {/* Sidebar Component */}
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-
-      {/* Main Content */}
+    <>
+      {/*
+        The main content area is now defined in ClientRootLayout.
+        The background is transparent to allow the body background to show through.
+      */}
       <main
-        className={`flex-1 min-h-screen px-4 sm:px-6 lg:px-12 xl:px-20 transition-all duration-300 ${
-          isSidebarOpen ? 'ml-64' : 'ml-0'
-        }`}
+        className="flex-1 min-h-screen px-4 sm:px-6 lg:px-12 xl:px-20 transition-all duration-300 bg-transparent"
       >
-        {/* Header - You might want to move the Header into the main content area if it's not part of the sidebar */}
-        <div className="my-4 cursor-pointer">
+        {/*
+          The Header component is now only visible on larger screens (lg and up)
+          as the mobile header is handled globally in ClientRootLayout.tsx.
+        */}
+        <div className="my-4 cursor-pointer hidden lg:block">
           <Header />
         </div>
 
@@ -160,6 +154,6 @@ export default function DashboardPage() {
           }
         `}</style>
       </main>
-    </div>
+    </>
   )
 }
