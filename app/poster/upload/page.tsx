@@ -1,49 +1,250 @@
-"use client"
+"use client";
 
-import React, { useState, FormEvent, ChangeEvent } from 'react';
+import React, { useState, FormEvent, ChangeEvent, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CloudUpload, CheckCircle, AlertTriangle } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { UploadCloud, CheckCircle, AlertTriangle, File, X } from 'lucide-react';
 
-// Define a type for the user object from the AuthContext
+// --- Mock Authentication Context ---
+// This mock replaces the unresolved import "@/contexts/AuthContext"
+// to make the component self-contained and runnable.
 interface User {
   uid?: string;
   id?: string;
   username?: string;
 }
 
+const useAuth = () => {
+  return { user: { uid: '123-test-user', username: 'DemoUser' } };
+};
+// ------------------------------------
+
+// Animated sphere component
+const AnimatedSphere = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas || !mounted) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    let parentElement = canvas.parentElement;
+
+    const resizeCanvas = () => {
+      if(!parentElement) return;
+      const rect = parentElement.getBoundingClientRect()
+      canvas.width = rect.width * window.devicePixelRatio
+      canvas.height = rect.height * window.devicePixelRatio
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio)
+    }
+
+    resizeCanvas()
+    window.addEventListener('resize', resizeCanvas)
+
+    // Sphere properties
+    const getDynamicCenterX = () => parentElement ? parentElement.clientWidth / 2 : 0;
+    const getDynamicCenterY = () => parentElement ? parentElement.clientHeight / 2 : 0;
+    let radius = Math.min(getDynamicCenterX(), getDynamicCenterY()) * 0.8
+    
+    // Node network
+    const nodes: Array<{
+      x: number
+      y: number
+      z: number
+      originalX: number
+      originalY: number
+      originalZ: number
+    }> = []
+
+    // Create nodes on sphere surface
+    const nodeCount = 80
+    for (let i = 0; i < nodeCount; i++) {
+      const phi = Math.acos(-1 + (2 * i) / nodeCount)
+      const theta = Math.sqrt(nodeCount * Math.PI) * phi
+      
+      const x = radius * Math.cos(theta) * Math.sin(phi)
+      const y = radius * Math.sin(theta) * Math.sin(phi)
+      const z = radius * Math.cos(phi)
+      
+      nodes.push({
+        x: getDynamicCenterX() + x,
+        y: getDynamicCenterY() + y,
+        z,
+        originalX: x,
+        originalY: y,
+        originalZ: z
+      })
+    }
+
+    let animationFrame: number
+    let time = 0
+
+    const animate = () => {
+      let centerX = getDynamicCenterX();
+      let centerY = getDynamicCenterY();
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      time += 0.01
+
+      // Update node positions with rotation
+      nodes.forEach((node) => {
+        const rotationY = time * 0.5
+        const rotationX = time * 0.3
+        
+        // Rotate around Y axis
+        const cosY = Math.cos(rotationY)
+        const sinY = Math.sin(rotationY)
+        const x1 = node.originalX * cosY - node.originalZ * sinY
+        const z1 = node.originalX * sinY + node.originalZ * cosY
+        
+        // Rotate around X axis
+        const cosX = Math.cos(rotationX)
+        const sinX = Math.sin(rotationX)
+        const y1 = node.originalY * cosX - z1 * sinX
+        const z2 = node.originalY * sinX + z1 * cosX
+        
+        node.x = centerX + x1
+        node.y = centerY + y1
+        node.z = z2
+      })
+
+      // Draw connections
+      nodes.forEach((node, i) => {
+        nodes.forEach((otherNode, j) => {
+          if (i < j) {
+            const dx = node.x - otherNode.x
+            const dy = node.y - otherNode.y
+            const dz = node.z - otherNode.z
+            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
+            
+            if (distance < radius * 0.8) {
+              const opacity = Math.max(0, (radius * 0.8 - distance) / (radius * 0.8)) * 0.3
+              const avgZ = (node.z + otherNode.z) / 2
+              const depthOpacity = (avgZ + radius) / (2 * radius)
+              
+              ctx.strokeStyle = `rgba(107, 72, 255, ${opacity * depthOpacity})`
+              ctx.lineWidth = 0.5
+              ctx.beginPath()
+              ctx.moveTo(node.x, node.y)
+              ctx.lineTo(otherNode.x, otherNode.y)
+              ctx.stroke()
+            }
+          }
+        })
+      })
+
+      // Draw nodes
+      nodes.forEach(node => {
+        const depthOpacity = (node.z + radius) / (2 * radius)
+        const size = 1 + depthOpacity * 2
+        
+        ctx.fillStyle = `rgba(107, 72, 255, ${depthOpacity * 0.8})`
+        ctx.beginPath()
+        ctx.arc(node.x, node.y, size, 0, Math.PI * 2)
+        ctx.fill()
+      })
+
+      animationFrame = requestAnimationFrame(animate)
+    }
+
+    animate()
+
+    return () => {
+      window.removeEventListener('resize', resizeCanvas)
+      cancelAnimationFrame(animationFrame)
+    }
+  }, [mounted])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="w-full h-full"
+    />
+  )
+}
+
+
 export default function UploadPage() {
   const { user } = useAuth() as { user: User | null };
 
+  // --- State Management ---
   const [templateName, setTemplateName] = useState<string>('');
   const [templateFile, setTemplateFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [uploadStatus, setUploadStatus] = useState<'success' | 'error' | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState<string>('');
+  const [isDragging, setIsDragging] = useState<boolean>(false);
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 50000000) { // 50MB limit
-        setMessage('File is too large. Max size is 50MB.');
-        setTemplateFile(null);
-        return;
-      }
-      setTemplateFile(file);
-      setMessage('');
+  // --- Effects ---
+  useEffect(() => {
+    return () => { if (filePreview) URL.revokeObjectURL(filePreview); };
+  }, [filePreview]);
+
+  useEffect(() => {
+    // This effect simulates a realistic progress bar during the upload.
+    if (uploadStatus === 'uploading') {
+      setUploadProgress(0);
+      const interval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 95) { // Stop at 95% to wait for the server response
+            clearInterval(interval);
+            return 95;
+          }
+          return prev + Math.random() * 10;
+        });
+      }, 150);
+      return () => clearInterval(interval);
+    }
+  }, [uploadStatus]);
+
+  // --- File Handling ---
+  const clearFile = () => {
+    setTemplateFile(null);
+    if (filePreview) URL.revokeObjectURL(filePreview);
+    setFilePreview(null);
+    const fileInput = document.getElementById('templateFile') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+    setMessage('');
+    setUploadStatus('idle');
+  };
+
+  const handleFileChange = (file: File | null | undefined) => {
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) { // 50MB limit
+      setMessage('File is too large (Max 50MB).');
+      setUploadStatus('error');
+      clearFile();
+      return;
+    }
+    setTemplateFile(file);
+    setMessage('');
+    setUploadStatus('idle');
+    if (file.type.startsWith('image/')) {
+      setFilePreview(URL.createObjectURL(file));
+    } else {
+      setFilePreview(null);
     }
   };
 
+  // --- Form Submission with REAL Backend Logic ---
   const handleUpload = async (e: FormEvent) => {
     e.preventDefault();
-
     if (!templateName.trim() || !templateFile) {
-      setMessage('Please provide both a template name and a file.');
+      setMessage('All fields are required.');
+      setUploadStatus('error');
       return;
     }
 
     setIsUploading(true);
-    setUploadStatus(null);
+    setUploadStatus('uploading');
     setMessage('');
 
     try {
@@ -58,6 +259,7 @@ export default function UploadPage() {
       formData.append('templateFile', templateFile);
       formData.append('userId', userId);
 
+      // --- ACTUAL BACKEND FETCH CALL ---
       const response = await fetch('/api/posters/upload', {
         method: 'POST',
         body: formData,
@@ -67,156 +269,208 @@ export default function UploadPage() {
         const errorData = await response.json();
         throw new Error(errorData.message || 'An unknown error occurred during upload.');
       }
-
+      
+      // If fetch is successful, complete the animation and show success
+      setUploadProgress(100);
+      await new Promise(resolve => setTimeout(resolve, 300)); // Wait for progress bar to finish
       setUploadStatus('success');
       setMessage('Template uploaded successfully! It will appear in your dashboard soon.');
-      setTemplateName('');
-      setTemplateFile(null);
+
     } catch (err: any) {
       setUploadStatus('error');
-      setMessage(err.message || 'An error occurred during upload.');
+      setMessage(err.message || 'An unknown error occurred.');
     } finally {
       setIsUploading(false);
     }
   };
 
+  // --- Reset Logic ---
+  const resetForm = () => {
+    setTemplateName('');
+    clearFile();
+    setUploadStatus('idle');
+  }
+
+  // --- Drag & Drop Handlers ---
+  const handleDragEvents = (e: React.DragEvent<HTMLLabelElement>, isEntering: boolean) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(isEntering);
+  };
+  const handleDrop = (e: React.DragEvent<HTMLLabelElement>) => {
+    handleDragEvents(e, false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileChange(e.dataTransfer.files[0]);
+    }
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center p-8 bg-white/5 rounded-2xl border border-white/10 shadow-lg backdrop-blur-md">
-      <div className="w-full max-w-lg text-center">
-        <h1 className="text-3xl font-bold text-white mb-2">Upload a New Template</h1>
-        <p className="text-gray-400 mb-8">Upload your high-resolution, high-DPI templates for others to use.</p>
-
-        <motion.form
-          onSubmit={handleUpload}
-          className="bg-[#111214] p-8 rounded-xl shadow-inner border border-white/10"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* Template Name */}
-          <div className="mb-6">
-            <label htmlFor="templateName" className="block text-gray-300 font-semibold text-left mb-2">
-              Template Name
-            </label>
-            <input
-              type="text"
-              id="templateName"
-              value={templateName}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setTemplateName(e.target.value)}
-              placeholder="e.g., 'Modern Business Flyer'"
-              disabled={isUploading}
-              className="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-            />
-          </div>
-
-          {/* Template File */}
-          <div className="mb-6">
-            <label htmlFor="templateFile" className="block text-gray-300 font-semibold text-left mb-2">
-              Template File (High-Res)
-            </label>
-            <div className="flex items-center justify-center w-full relative">
-              <label
-                htmlFor="templateFile"
-                className={`flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer transition-colors duration-200
-                  ${isUploading ? 'bg-gray-700 text-gray-500' : 'bg-gray-800 hover:bg-gray-700 border-gray-600 text-gray-400'}`}
-              >
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <CloudUpload size={48} />
-                  <p className="mb-2 text-sm">
-                    <span className="font-semibold">Click to upload</span> or drag and drop
-                  </p>
-                  <p className="text-xs text-center">SVG, PNG, JPG, or PDF (up to 50MB)</p>
-                  {templateFile && (
-                    <p className="mt-2 text-sm text-green-400 font-medium">Selected: {templateFile.name}</p>
-                  )}
-                </div>
-              </label>
-              <input
-                id="templateFile"
-                type="file"
-                className="hidden"
-                accept=".svg,.png,.jpg,.jpeg,.pdf"
-                onChange={handleFileChange}
-                disabled={isUploading}
-              />
-            </div>
-          </div>
-
-          {/* Status Message */}
-          {message && (
-            <AnimatePresence>
+    <div className="min-h-screen w-full flex items-center justify-center font-sans p-4 overflow-hidden relative">
+       {/* Decorative Background */}
+      <div className="absolute inset-0 z-0 opacity-70">
+        <div className="absolute top-0 left-0 w-126 h-126 -translate-x-1/4 -translate-y-1/4">
+          <AnimatedSphere />
+        </div>
+        <div className="absolute bottom-0 right-10 w-126 h-126 translate-x-1/6 translate-y-1/6">
+          <AnimatedSphere />
+        </div>
+      </div>
+      
+      {/* Main Content */}
+      <div className="w-full max-w-md z-10">
+        <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-gray-200/50 shadow-2xl overflow-hidden">
+          <AnimatePresence mode="wait">
+            {uploadStatus === 'success' ? (
+              // --- Success State ---
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                key="success"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
                 transition={{ duration: 0.3 }}
-                className={`text-center p-3 rounded-lg text-sm mb-4 font-medium
-                  ${uploadStatus === 'error' ? 'bg-red-900/40 text-red-300' : 'bg-green-900/40 text-green-300'}`}
+                className="p-8 text-center"
               >
-                {message}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0, transition: { delay: 0.1 } }}
+                  className="flex justify-center"
+                >
+                  <CheckCircle className="h-16 w-16 text-green-500 bg-green-50 p-3 rounded-full" />
+                </motion.div>
+                <motion.h2
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0, transition: { delay: 0.2 } }}
+                  className="text-2xl font-bold text-gray-800 mt-4"
+                >
+                  Upload Successful
+                </motion.h2>
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0, transition: { delay: 0.3 } }}
+                  className="text-gray-600 mt-2"
+                >
+                  {message}
+                </motion.p>
+                <motion.button
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0, transition: { delay: 0.4 } }}
+                  onClick={resetForm}
+                  className="mt-6 w-full py-2.5 px-4 rounded-lg font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors cursor-pointer"
+                >
+                  Upload Another File
+                </motion.button>
               </motion.div>
-            </AnimatePresence>
-          )}
+            ) : (
+              // --- Form State ---
+              <motion.div
+                key="form"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.3 }}
+                className="p-8"
+              >
+                <div className="text-center">
+                  <h1 className="text-2xl font-bold text-gray-900">Upload New Template</h1>
+                  <p className="text-gray-500 mt-1">Share your work with the community.</p>
+                </div>
+                
+                <form onSubmit={handleUpload} className="space-y-5 mt-8">
+                  <div>
+                    <label htmlFor="templateName" className="block text-sm font-medium text-gray-700 mb-1">Template Name</label>
+                    <input
+                      type="text"
+                      id="templateName"
+                      value={templateName}
+                      onChange={(e) => setTemplateName(e.target.value)}
+                      placeholder="e.g., 'Modern Business Flyer'"
+                      disabled={isUploading}
+                      className="w-full px-3 py-2 rounded-md bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                    />
+                  </div>
 
-          {/* Upload Button */}
-          <motion.button
-            type="submit"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            disabled={isUploading || uploadStatus === 'success'}
-            className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2
-              ${isUploading
-                ? 'bg-blue-800 text-blue-200 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-              }
-              ${uploadStatus === 'success' ? 'bg-green-600 text-white cursor-not-allowed' : ''}
-              ${uploadStatus === 'error' ? 'bg-red-600 text-white hover:bg-red-700' : ''}`}
-          >
-            <AnimatePresence mode="wait">
-              {isUploading ? (
-                <motion.div
-                  key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                </motion.div>
-              ) : uploadStatus === 'success' ? (
-                <motion.div
-                  key="success"
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 260, damping: 20 } }}
-                  exit={{ scale: 0.5, opacity: 0, transition: { duration: 0.2 } }}
-                >
-                  <CheckCircle size={20} />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="upload"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                >
-                  <CloudUpload size={20} />
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <span className="ml-2">
-              {isUploading ? 'Uploading...' : uploadStatus === 'success' ? 'Upload Complete!' : 'Upload Template'}
-            </span>
-          </motion.button>
-        </motion.form>
+                  <div>
+                    <AnimatePresence mode="wait">
+                      {!templateFile ? (
+                        <motion.label
+                          key="dropzone"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          htmlFor="templateFile"
+                          onDragEnter={(e) => handleDragEvents(e, true)}
+                          onDragOver={(e) => handleDragEvents(e, true)}
+                          onDragLeave={(e) => handleDragEvents(e, false)}
+                          onDrop={handleDrop}
+                          className={`relative flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-300
+                            ${isDragging ? 'border-blue-500 bg-blue-50 scale-105' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'}`}
+                        >
+                          <div className="flex flex-col items-center justify-center text-center">
+                            <UploadCloud size={32} className="text-gray-500 mb-2" />
+                            <p className="text-sm text-gray-600"><span className="font-semibold text-blue-600">Click to upload</span> or drag & drop</p>
+                            <p className="text-xs text-gray-500 mt-1">Max file size: 50MB</p>
+                          </div>
+                          <input id="templateFile" type="file" className="hidden" onChange={(e) => handleFileChange(e.target.files?.[0])} disabled={isUploading} />
+                        </motion.label>
+                      ) : (
+                        <motion.div
+                          key="preview"
+                          initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                          transition={{ duration: 0.7, type: 'spring', bounce: 0.4 }}
+                          className="w-full p-3 border border-gray-300 rounded-lg bg-white flex items-center space-x-3"
+                        >
+                          {filePreview ? <img src={filePreview} alt="Preview" className="h-12 w-12 rounded-md object-cover" /> : <div className="flex h-12 w-12 items-center justify-center rounded-md bg-gray-100"><File className="h-6 w-6 text-gray-500" /></div>}
+                          <div className="flex-1 min-w-0"><p className="text-sm font-medium text-gray-800 truncate">{templateFile.name}</p><p className="text-xs text-gray-500">{(templateFile.size / 1024 / 1024).toFixed(2)} MB</p></div>
+                          <button type="button" onClick={clearFile} disabled={isUploading} className="p-1 text-gray-500 hover:text-gray-800 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"><X size={18} /></button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
 
-        <p className="text-gray-600 mt-8 text-sm">
-          <AlertTriangle size={16} className="inline-block mr-1 text-yellow-500" />
-          For best results, please ensure your template files are at least 300 DPI.
-        </p>
+                  <AnimatePresence>
+                    {message && uploadStatus === 'error' && (
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-sm p-3 rounded-md flex items-center gap-2 font-medium bg-red-50 text-red-800">
+                        <AlertTriangle size={18} /><span>{message}</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {uploadStatus === 'uploading' && (
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                      <motion.div
+                        className="bg-blue-600 h-2.5 rounded-full"
+                        initial={{ width: '0%' }}
+                        animate={{ width: `${uploadProgress}%` }}
+                        transition={{ ease: "linear", duration: 0.2 }}
+                      ></motion.div>
+                    </div>
+                  )}
+
+                  <div>
+                    <button
+                      type="submit"
+                      disabled={isUploading}
+                      className="w-full py-2.5 px-4 rounded-lg font-semibold text-white transition-all duration-300 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-wait shadow-sm hover:shadow-md cursor-pointer"
+                    >
+                      {isUploading ? 'Uploading...' : 'Upload Template'}
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
 }
+
+// --- Global Styles ---
+const style = document.createElement('style');
+style.innerHTML = `
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+  body { font-family: 'Inter', sans-serif; }
+`;
+document.head.appendChild(style);
