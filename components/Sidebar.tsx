@@ -1,12 +1,8 @@
-// @/components/Sidebar.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Logo from './Logo' // Your Logo component
-// import { useAuth } from '@/contexts/AuthContext' // Assuming this is defined
-
-// --- Lucide React Icons for Consistency ---
+import Logo from './Logo'
 import {
   Home,
   PlusCircle,
@@ -17,14 +13,12 @@ import {
   ChevronDown,
   ChevronRight,
   LogOut,
-  Menu,
-  X,
   Layout,
   User,
   FolderOpen
 } from 'lucide-react'
 
-// --- Menu Data ---
+// --- Menu Data (unchanged) ---
 type MenuItem = {
   name: string
   icon: React.ElementType
@@ -77,7 +71,7 @@ const menu: MenuItem[] = [
   },
 ]
 
-// --- Sidebar Component (Updated Design & Functionality) ---
+// --- Sidebar Component (Fixed) ---
 type SidebarProps = {
   forceActive?: string;
   isOpen: boolean;
@@ -85,22 +79,10 @@ type SidebarProps = {
 }
 
 export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarProps) {
-  // const { logout } = useAuth(); // Assuming this is defined
-  const logout = () => { console.log("Logout function called"); }; // Mock logout for demonstration
+  const logout = () => { console.log("Logout function called"); };
   
   const [pathname, setPathname] = useState('');
   const [expanded, setExpanded] = useState<string[]>([])
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -149,16 +131,12 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
     pathname.includes('/poster/new/single-logo/editor') ||
     pathname.includes('/poster/new/multiple-logo/editor')
 
-  const SidebarContent = (
-    // FIX: Main aside is now a flex container with a fixed footer
-    <aside className="w-64 h-screen bg-[#111214] text-white flex flex-col font-nunito border-r-2 border-white/5 shadow-xl">
-      
-      {/* FIX: Header with Logo */}
+  const renderSidebarContent = (isMobile: boolean) => (
+    <aside className={`h-screen bg-[#111214] text-white flex flex-col font-nunito border-r-2 border-white/5 shadow-xl ${isMobile ? 'w-[85%] max-w-sm' : 'w-64'}`}>
       <div className="p-5 h-[72px] border-b border-gray-800/50 flex items-center justify-between">
         <Logo />
       </div>
       
-      {/* FIX: Navigation is now a scrollable container */}
       <nav className="flex-1 px-4 py-4 overflow-y-auto">
         {menu.map((item) => {
           const Icon = item.icon
@@ -243,13 +221,12 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
 
         {isEditingEnvironment && (
           <div className="relative group flex items-center justify-between w-full px-3 py-2.5 rounded-lg bg-white/5 text-white font-semibold mt-2">
-             <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-white"></div>
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-white"></div>
             <span className="text-sm">Editing Environment</span>
           </div>
         )}
       </nav>
 
-      {/* FIX: Fixed Footer */}
       <div className="flex-shrink-0 p-4 border-t border-gray-800/50 w-full">
         <div className="text-gray-500 text-xs mb-3 text-center select-none">
           SSI STUDIOS v.1.08.25
@@ -272,26 +249,9 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet" />
       
-      {/* Mobile hamburger button */}
-      <motion.div 
-        className="lg:hidden fixed top-4 right-4 z-50"
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
-        <button
-          onClick={toggleSidebar}
-          className="w-10 h-10 flex items-center justify-center bg-[#1a1b1f] rounded-full border border-gray-800/50 text-white hover:bg-[#2a2b2f] transition backdrop-blur-md shadow-md"
-          type="button"
-          aria-label={isOpen ? "Close menu" : "Open menu"}
-        >
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </motion.div>
-
       {/* Desktop Sidebar (visible on lg screens and up) */}
       <div className="hidden lg:block fixed top-0 left-0 h-screen z-30"> 
-        {SidebarContent}
+        {renderSidebarContent(false)}
       </div>
 
       {/* Mobile Sidebar Container (for animation and overlay) */}
@@ -323,7 +283,7 @@ export default function Sidebar({ forceActive, isOpen, toggleSidebar }: SidebarP
               }}
               className="relative w-64 h-full"
             >
-              {SidebarContent}
+              {renderSidebarContent(true)}
             </motion.div>
           </motion.div>
         )}
