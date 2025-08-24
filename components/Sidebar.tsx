@@ -35,7 +35,7 @@ const menu: MenuItem[] = [
     icon: Layout,
     children: [
       { name: 'Upload Templates', path: '/poster/upload' },
-      { name: 'Single Logo Editor', path: '/poster/new/single-logo/editor' },
+      { name: 'Single Logo Editor', path: '/poster/editor/single-logo' },
       { name: 'Multiple Logos Editor', path: '/poster/multiple-logo-editor' },
     ],
   },
