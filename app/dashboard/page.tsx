@@ -154,6 +154,12 @@ export default function DashboardPage() {
           </div>
         </section>
 
+                 {/* --- Newest Templates (Fetched from MongoDB) --- */}
+        <NewTemplates />
+
+
+
+
         {/* --- Creative AI & Inspiration Hub --- */}
         <section className="mb-12">
           <h2 className="text-xl font-semibold mb-6">Creative AI</h2>
@@ -192,9 +198,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* --- Newest Templates (Fetched from MongoDB) --- */}
-        <NewTemplates />
-
+  
         {/* --- New Professional Footer --- */}
         <Footer />
 
