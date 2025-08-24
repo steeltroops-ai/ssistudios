@@ -1,39 +1,37 @@
 // src/app/ClientRootLayout.tsx
-'use client'
+"use client";
 
-import { usePathname } from 'next/navigation'
-import Sidebar from '@/components/Sidebar'
-import { AuthProvider, useAuth } from '@/contexts/AuthContext'
-import { ReactNode, useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { HiOutlineMenu, HiX } from 'react-icons/hi'
+import { usePathname } from "next/navigation";
+import Sidebar from "@/components/Sidebar";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ReactNode, useState, useEffect } from "react";
+import { motion } from "framer-motion";
 
-// --- AnimatedHamburgerIcon ---
-type MotionLineProps = React.ComponentPropsWithoutRef<'line'> & {
+// --- AnimatedHamburgerIcon component remains the same ---
+// (It's good as-is, so I've omitted it for brevity. Keep your existing component.)
+type MotionLineProps = React.ComponentPropsWithoutRef<"line"> & {
   variants?: any;
   [key: string]: any;
 };
-const MotionLine = motion.line as React.FC<MotionLineProps>
-
+const MotionLine = motion.line as React.FC<MotionLineProps>;
 const AnimatedHamburgerIcon = ({
   isOpen,
   size = 20,
   strokeWidth = 2,
-  className = ''
+  className = "",
 }: {
-  isOpen: boolean
-  size?: number
-  strokeWidth?: number
-  className?: string
+  isOpen: boolean;
+  size?: number;
+  strokeWidth?: number;
+  className?: string;
 }) => {
   const commonLineAttributes = {
-    vectorEffect: 'non-scaling-stroke' as const,
-    stroke: 'currentColor',
+    vectorEffect: "non-scaling-stroke" as const,
+    stroke: "currentColor",
     strokeWidth,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const
-  }
-
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
   return (
     <motion.svg
       width={size}
@@ -42,22 +40,16 @@ const AnimatedHamburgerIcon = ({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      animate={isOpen ? 'open' : 'closed'}
+      animate={isOpen ? "open" : "closed"}
       initial={false}
-      variants={{
-        open: {},
-        closed: {}
-      }}
+      variants={{ open: {}, closed: {} }}
     >
       <MotionLine
         x1="4"
         y1="6"
         x2="20"
         y2="6"
-        variants={{
-          closed: { rotate: 0, y: 0 },
-          open: { rotate: 45, y: 6 }
-        }}
+        variants={{ closed: { rotate: 0, y: 0 }, open: { rotate: 45, y: 6 } }}
         {...commonLineAttributes}
       />
       <MotionLine
@@ -65,10 +57,7 @@ const AnimatedHamburgerIcon = ({
         y1="12"
         x2="20"
         y2="12"
-        variants={{
-          closed: { opacity: 1 },
-          open: { opacity: 0 }
-        }}
+        variants={{ closed: { opacity: 1 }, open: { opacity: 0 } }}
         {...commonLineAttributes}
       />
       <MotionLine
@@ -78,74 +67,81 @@ const AnimatedHamburgerIcon = ({
         y2="18"
         variants={{
           closed: { rotate: 0, y: 0 },
-          open: { rotate: -45, y: -6 }
+          open: { rotate: -45, y: -6 },
         }}
         {...commonLineAttributes}
       />
     </motion.svg>
-  )
-}
+  );
+};
 
 // --- AppLayout component ---
 function AppLayout({ children }: { children: ReactNode }) {
-  const pathname = usePathname()
-  const { isAuthenticated } = useAuth()
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const forceActive = pathname === '/selector' ? 'Dashboard' : undefined
+  const pathname = usePathname();
+  const { isAuthenticated } = useAuth();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const forceActive = pathname === "/selector" ? "Dashboard" : undefined;
+
+  // ✨ FIX: Define which pages should have a special layout (or no layout)
+  const isEditorPage = pathname.startsWith("/editor"); // Assumes your editor is at '/editor/...'
+  const isLoginPage = pathname === "/login";
 
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen)
-  }
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
   useEffect(() => {
     if (isSidebarOpen) {
-      document.body.style.overflow = 'hidden'
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = ''
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = ''
-    }
-  }, [isSidebarOpen])
+      document.body.style.overflow = "";
+    };
+  }, [isSidebarOpen]);
 
+  // ✨ FIX: If it's the editor page, render it directly without any layout wrappers.
+  // This removes the padding and sidebar, making it truly full-screen.
+  if (isEditorPage) {
+    return <>{children}</>;
+  }
 
-  if (!isAuthenticated && pathname !== '/login') {
-    return null
+  if (!isAuthenticated && !isLoginPage) {
+    return null;
   }
 
   return (
     <>
-      {pathname !== '/login' ? (
+      {!isLoginPage ? (
         <div className="flex relative z-10 min-h-screen">
-          <Sidebar forceActive={forceActive} isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-          
-          <main
-            className={`flex-1 overflow-y-auto bg-gray-200 transition-all duration-300 p-4 lg:p-8`}
-          >
-            {/*
-              GLOBAL MOBILE HEADER:
-              This header is now part of the main layout, ensuring only ONE mobile menu button for the ENTIRE APP.
-              It's hidden on large screens (`lg:hidden`).
-            */}
+          <Sidebar
+            forceActive={forceActive}
+            isOpen={isSidebarOpen}
+            toggleSidebar={toggleSidebar}
+          />
+          <main className="flex-1 overflow-y-auto bg-gray-200 transition-all duration-300 p-4 lg:p-8">
             <div className="flex items-center justify-between mb-6 lg:hidden">
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
-                {/* Dynamic title based on current path for mobile header */}
-                {pathname === '/dashboard' ? 'Dashboard' : 
-                  pathname.startsWith('/poster/new') ? 'Creative Studio' :
-                  pathname.startsWith('/templates') ? 'Templates' :
-                  pathname.startsWith('/settings') ? 'Settings' :
-                  'App'} {/* Default title */}
+                {pathname === "/dashboard"
+                  ? "Dashboard"
+                  : pathname.startsWith("/poster/new")
+                  ? "Creative Studio"
+                  : pathname.startsWith("/templates")
+                  ? "Templates"
+                  : pathname.startsWith("/settings")
+                  ? "Settings"
+                  : "App"}
               </h1>
               <button
-                  onClick={toggleSidebar}
-                  className="p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
-                  aria-label="Toggle sidebar"
+                onClick={toggleSidebar}
+                className="p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
+                aria-label="Toggle sidebar"
               >
-                  <AnimatedHamburgerIcon isOpen={isSidebarOpen} size={28} />
+                <AnimatedHamburgerIcon isOpen={isSidebarOpen} size={28} />
               </button>
             </div>
-
-            {children} {/* This is where your page components (DashboardPage, PosterWithLogoEditor) will be rendered */}
+            {children}
           </main>
         </div>
       ) : (
@@ -154,14 +150,14 @@ function AppLayout({ children }: { children: ReactNode }) {
         </main>
       )}
     </>
-  )
+  );
 }
 
 // The main layout component wraps everything in the AuthProvider
 export default function ClientRootLayout({ children }: { children: ReactNode }) {
   return (
     <AuthProvider>
-      <AppLayout>{children}</AppLayout> {/* AppLayout now contains all sidebar logic */}
+      <AppLayout>{children}</AppLayout>
     </AuthProvider>
-  )
+  );
 }
