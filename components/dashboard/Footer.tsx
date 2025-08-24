@@ -18,47 +18,42 @@ export default function Footer() {
     { label: 'Contact Us', href: '#' },
   ];
 
-  const iconVariants = {
-    hover: { scale: 1.2, rotate: 5, color: '#ffffff' },
-    tap: { scale: 0.9 },
-  };
-  
-  const linkVariants = {
-    hover: { color: '#ffffff' },
-  };
+  const iconVariants = { hover: { scale: 1.2, rotate: 5, color: '#000' }, tap: { scale: 0.9 } };
+  const linkVariants = { hover: { color: '#000' } };
 
   return (
-    <footer className="bg-zinc-900 text-zinc-400 mt-20">
-      <div className="container mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Brand Section */}
-          <div className="flex flex-col">
-            <h3 className="text-xl font-bold text-white mb-2">SSI STUDIOS</h3>
-            <p className="text-sm max-w-xs">
-              Empowering creativity through innovative design tools and templates.
+    <footer className="bg-transparent text-gray-600 mt-4 backdrop-blur-sm">
+      <div className="container mx-auto px-4 py-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+
+          {/* Brand */}
+          <div className="flex flex-col md:col-span-1 mb-2 md:mb-0">
+            <h3 className="text-lg font-bold text-gray-900 mb-1">SSI STUDIOS</h3>
+            <p className="text-xs leading-snug mb-1">
+              Empowering creativity with innovative design tools.
             </p>
-            <a 
-              href="https://www.ssinnovations.com" 
-              target="_blank" 
+            <a
+              href="https://www.ssinnovations.com"
+              target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 mt-4 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors"
             >
-              <Globe size={16} />
-              www.ssinnovations.com
+              <Globe size={14} />
+              <span className="font-medium">ssinnovations.com</span>
             </a>
           </div>
 
-          {/* Quick Links Section */}
-          <div>
-            <h4 className="font-semibold text-white mb-4">Quick Links</h4>
-            <ul className="space-y-2">
+          {/* Quick Links */}
+          <div className="flex flex-col md:justify-start mb-2 md:mb-0">
+            <h4 className="font-semibold text-gray-900 text-xs mb-1">Quick Links</h4>
+            <ul className="space-y-1">
               {footerLinks.map((link) => (
                 <li key={link.label}>
                   <motion.a
                     href={link.href}
                     variants={linkVariants}
                     whileHover="hover"
-                    className="hover:text-white transition-colors"
+                    className="hover:text-gray-900 text-xs transition-colors"
                   >
                     {link.label}
                   </motion.a>
@@ -67,10 +62,10 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Social Media Section */}
-          <div>
-            <h4 className="font-semibold text-white mb-4">Follow Us</h4>
-            <div className="flex space-x-4">
+          {/* Social Media */}
+          <div className="flex flex-col md:justify-start">
+            <h4 className="font-semibold text-gray-900 text-xs mb-1">Follow Us</h4>
+            <div className="flex space-x-2">
               {socialLinks.map((social) => (
                 <motion.a
                   key={social.label}
@@ -79,18 +74,22 @@ export default function Footer() {
                   variants={iconVariants}
                   whileHover="hover"
                   whileTap="tap"
-                  className="text-zinc-400"
+                  className="text-gray-500 hover:text-gray-900 transition-colors"
                 >
-                  <social.icon size={22} />
+                  <social.icon size={16} />
                 </motion.a>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-zinc-800 text-center text-sm">
-          <p>&copy; {new Date().getFullYear()} SSI STUDIOS v.1.08.25. All rights reserved.</p>
+        {/* Soft black divider */}
+        <div className="mt-4 border-t border-black/20"></div>
+
+        {/* Bottom */}
+        <div className="mt-2 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
+          <p>&copy; {new Date().getFullYear()} SSI STUDIOS. All rights reserved.</p>
+          <p className="mt-1 md:mt-0">Developed By <span className="font-medium">SSIMAYA</span></p>
         </div>
       </div>
     </footer>
