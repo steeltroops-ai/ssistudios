@@ -1,8 +1,7 @@
 "use client";
-
-import React, { useState, useEffect, FC, useRef } from "react";
+import { useRouter } from 'next/navigation'; // <-- add at top with other imports
+import React, { useState, useEffect, FC } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-// import Link from 'next/link'; // Removed this line to fix the error
 import {
     Plus,
     X,
@@ -15,7 +14,6 @@ import {
     Trash2,
     Search,
     Archive,
-    CheckCircle,
     Loader2
 } from "lucide-react";
 import toast, { Toaster } from 'react-hot-toast';
@@ -34,7 +32,6 @@ interface Template {
 }
 
 // --- MOCK DATA & API ---
-// In a real app, this data would come from your database.
 const createMockTemplates = (count: number): Template[] => {
     return Array.from({ length: count }, (_, i) => ({
         _id: `template_${i + 1}`,
@@ -65,16 +62,18 @@ const InfoPill: FC<InfoPillProps> = ({ icon, text }) => (
     </div>
 );
 
-// --- MODAL ---
-type TemplateDetailModalProps = {
+// --- MODAL PROPS TYPE ---
+interface TemplateDetailModalProps {
     template: Template | null;
     onClose: () => void;
     onDelete: (templateId: string) => Promise<void>;
-};
+}
 
+// --- MODAL COMPONENT ---
 const TemplateDetailModal: FC<TemplateDetailModalProps> = ({ template, onClose, onDelete }) => {
     const [isConfirmingDelete, setIsConfirmingDelete] = useState<boolean>(false);
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
+    const router = useRouter(); // initialize router
 
     useEffect(() => {
         if (template) {
@@ -88,14 +87,13 @@ const TemplateDetailModal: FC<TemplateDetailModalProps> = ({ template, onClose, 
     const handleConfirmDelete = async () => {
         setIsDeleting(true);
         await onDelete(template._id);
-        // The modal will be closed by the parent component upon successful deletion
     };
 
     const confirmationAnimation = {
         initial: { opacity: 0, y: 10 },
         animate: { opacity: 1, y: 0 },
         exit: { opacity: 0, y: -10 },
-        transition: { duration: 0.2 }
+        transition: { duration: 0.2 },
     };
 
     return (
@@ -115,8 +113,9 @@ const TemplateDetailModal: FC<TemplateDetailModalProps> = ({ template, onClose, 
                     className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col md:flex-row overflow-hidden cursor-default"
                     onClick={(e) => e.stopPropagation()}
                 >
+                    {/* IMAGE SECTION */}
                     <div className="w-full md:w-1/2 bg-zinc-50 flex items-center justify-center p-6 relative">
-                         <AnimatePresence>
+                        <AnimatePresence>
                             {isDeleting && (
                                 <motion.div
                                     key="deleting-overlay"
@@ -138,6 +137,7 @@ const TemplateDetailModal: FC<TemplateDetailModalProps> = ({ template, onClose, 
                         />
                     </div>
 
+                    {/* DETAILS SECTION */}
                     <div className="w-full md:w-1/2 p-8 flex flex-col overflow-y-auto">
                         <div className="flex justify-between items-start mb-3">
                             <h2 className="text-2xl font-bold text-zinc-800">{template.templateName}</h2>
@@ -145,18 +145,22 @@ const TemplateDetailModal: FC<TemplateDetailModalProps> = ({ template, onClose, 
                                 whileHover={{ scale: 1.1, rotate: 90 }}
                                 whileTap={{ scale: 0.9 }}
                                 onClick={onClose}
-                                className="p-2 rounded-full text-zinc-500 hover:bg-zinc-100 transition-colors cursor-pointer">
+                                className="p-2 rounded-full text-zinc-500 hover:bg-zinc-100 transition-colors cursor-pointer"
+                            >
                                 <X size={20} />
                             </motion.button>
                         </div>
+
                         <p className="text-sm text-zinc-600 mb-6">{template.description}</p>
+
                         <div className="flex flex-wrap gap-2 mb-6">
-                            {template.tags.map((tag) => (
+                            {(template.tags || []).map((tag) => ( // <-- safe fallback
                                 <span key={tag} className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
                                     {tag}
                                 </span>
                             ))}
                         </div>
+
                         <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">Details</h3>
                         <div className="flex flex-wrap gap-2">
                             <InfoPill icon={<User size={12} />} text={template.uploadedBy} />
@@ -165,6 +169,7 @@ const TemplateDetailModal: FC<TemplateDetailModalProps> = ({ template, onClose, 
                             <InfoPill icon={<HardDrive size={12} />} text={template.fileSize} />
                         </div>
 
+                        {/* ACTION BUTTONS */}
                         <div className="mt-auto pt-8">
                             <AnimatePresence mode="wait">
                                 {isConfirmingDelete ? (
@@ -172,10 +177,18 @@ const TemplateDetailModal: FC<TemplateDetailModalProps> = ({ template, onClose, 
                                         <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
                                             <p className="text-sm font-semibold text-red-800">Are you sure?</p>
                                             <div className="mt-3 flex gap-2">
-                                                <motion.button whileTap={{ scale: 0.97 }} onClick={handleConfirmDelete} className="w-full bg-red-600 text-white text-sm font-semibold py-2 px-3 rounded-md hover:bg-red-700 transition-colors cursor-pointer">
+                                                <motion.button
+                                                    whileTap={{ scale: 0.97 }}
+                                                    onClick={handleConfirmDelete}
+                                                    className="w-full bg-red-600 text-white text-sm font-semibold py-2 px-3 rounded-md hover:bg-red-700 transition-colors cursor-pointer"
+                                                >
                                                     Confirm Delete
                                                 </motion.button>
-                                                <motion.button whileTap={{ scale: 0.97 }} onClick={() => setIsConfirmingDelete(false)} className="w-full bg-zinc-200 text-zinc-800 text-sm font-semibold py-2 px-3 rounded-md hover:bg-zinc-300 transition-colors cursor-pointer">
+                                                <motion.button
+                                                    whileTap={{ scale: 0.97 }}
+                                                    onClick={() => setIsConfirmingDelete(false)}
+                                                    className="w-full bg-zinc-200 text-zinc-800 text-sm font-semibold py-2 px-3 rounded-md hover:bg-zinc-300 transition-colors cursor-pointer"
+                                                >
                                                     Cancel
                                                 </motion.button>
                                             </div>
@@ -184,12 +197,29 @@ const TemplateDetailModal: FC<TemplateDetailModalProps> = ({ template, onClose, 
                                 ) : (
                                     <motion.div key="actions" {...confirmationAnimation}>
                                         <div className="flex flex-col sm:flex-row gap-2">
-                                            <motion.button whileTap={{ scale: 0.97 }} className="w-full bg-zinc-800 text-white font-semibold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-black transition-colors cursor-pointer text-sm">
+                                            <motion.button
+                                                whileTap={{ scale: 0.97 }}
+                                                onClick={() => {
+                                                    if (template._id === "admin_welcome") {
+                                                        router.push("/poster/editor/poster1editor");
+                                                    } else {
+                                                        toast(`Using template: ${template.templateName}`);
+                                                    }
+                                                }}
+                                                className="w-full bg-zinc-800 text-white font-semibold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-black transition-colors cursor-pointer text-sm"
+                                            >
                                                 <Plus size={16} /> Use Template
                                             </motion.button>
-                                            <motion.button whileTap={{ scale: 0.97 }} onClick={() => setIsConfirmingDelete(true)} className="w-full sm:w-auto bg-zinc-100 text-zinc-700 font-semibold py-2.5 px-3 rounded-lg flex items-center justify-center gap-2 hover:bg-zinc-200 transition-colors cursor-pointer">
-                                                <Trash2 size={16} />
-                                            </motion.button>
+
+                                            {!template._id.startsWith("admin_") && (
+                                                <motion.button
+                                                    whileTap={{ scale: 0.97 }}
+                                                    onClick={() => setIsConfirmingDelete(true)}
+                                                    className="w-full sm:w-auto bg-zinc-100 text-zinc-700 font-semibold py-2.5 px-3 rounded-lg flex items-center justify-center gap-2 hover:bg-zinc-200 transition-colors cursor-pointer"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </motion.button>
+                                            )}
                                         </div>
                                     </motion.div>
                                 )}
@@ -201,6 +231,7 @@ const TemplateDetailModal: FC<TemplateDetailModalProps> = ({ template, onClose, 
         </AnimatePresence>
     );
 };
+
 
 // --- CARD ---
 type DesignCardProps = {
@@ -262,15 +293,36 @@ export default function App() {
     const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>("");
 
+    // --- ADMIN DEFAULT TEMPLATE ---
+    const [adminTemplate, setAdminTemplate] = useState<Template | null>(null);
+
+    useEffect(() => {
+        const img = new Image();
+        img.src = "/posters/poster1.jpg";
+        img.onload = () => {
+            const width = img.width;
+            const height = img.height;
+            setAdminTemplate({
+                _id: "admin_welcome",
+                templateName: "Welcome Template",
+                imageUrl: "/posters/poster1.jpg",
+                description: "This is the admin's featured choice template.",
+                tags: ["Admin Choice", "Featured"],
+                dimensions: { width, height },
+                fileSize: "1.5 MB",
+                uploadedBy: "Admin",
+                createdAt: new Date().toISOString(),
+            });
+        };
+    }, []);
+
     useEffect(() => {
         async function fetchTemplates() {
             try {
-                // --- REAL-TIME API CALL ---
                 const response = await fetch("/api/templates");
                 if (!response.ok) throw new Error("Could not fetch templates from the server.");
                 const data = await response.json();
                 
-                // This logic enhances your fetched data with placeholder details
                 const enhancedData: Template[] = data.data.map((t: any) => ({
                     ...t,
                     imageUrl: t.imageUrl || "",
@@ -293,7 +345,6 @@ export default function App() {
     }, []);
 
     const handleDeleteTemplate = async (templateId: string) => {
-        // --- REAL-TIME API CALL ---
         const promise = fetch(`/api/templates/${templateId}`, {
             method: 'DELETE',
         });
@@ -358,25 +409,42 @@ export default function App() {
                                 <p className="mt-1 text-sm">{error}</p>
                             </div>
                         )
-                        : filteredTemplates.length > 0
-                        ? filteredTemplates.map((template) => (
-                            <motion.div
-                                key={template._id}
-                                layout
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.8 }}
-                                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                            >
-                                <DesignCard template={template} onCardClick={setSelectedTemplate} />
-                            </motion.div>
-                        ))
                         : (
-                            <div className="col-span-full text-center py-10 px-4 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-500">
-                                <Archive className="mx-auto h-10 w-10 text-zinc-400" />
-                                <h3 className="mt-3 text-base font-semibold">No Templates Found</h3>
-                                <p className="mt-1 text-sm">Your search for "{searchQuery}" did not return any results.</p>
-                            </div>
+                            <>
+                                {adminTemplate && (
+                                    <motion.div
+                                        key={adminTemplate._id}
+                                        layout
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.8 }}
+                                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                    >
+                                        <DesignCard template={adminTemplate} onCardClick={setSelectedTemplate} />
+                                    </motion.div>
+                                )}
+                                {filteredTemplates.length > 0
+                                    ? filteredTemplates.map((template) => (
+                                        <motion.div
+                                            key={template._id}
+                                            layout
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.8 }}
+                                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                        >
+                                            <DesignCard template={template} onCardClick={setSelectedTemplate} />
+                                        </motion.div>
+                                    ))
+                                    : (
+                                        <div className="col-span-full text-center py-10 px-4 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-500">
+                                            <Archive className="mx-auto h-10 w-10 text-zinc-400" />
+                                            <h3 className="mt-3 text-base font-semibold">No Templates Found</h3>
+                                            <p className="mt-1 text-sm">Your search for "{searchQuery}" did not return any results.</p>
+                                        </div>
+                                    )
+                                }
+                            </>
                         )
                     }
                 </AnimatePresence>
