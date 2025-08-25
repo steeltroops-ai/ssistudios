@@ -18,6 +18,7 @@ import NewTemplates from "@/components/dashboard/Newtemplates";
 import VisitingCards from "@/components/dashboard/visitingcards";
 import Certificates from "@/components/dashboard/certificates";
 import Aicreative from "@/components/dashboard/aicreative";
+import Usernameheader from "@/components/dashboard/usernameheader"; // Import your new component
 
 // Define the shape of a template object from the database
 interface Template {
@@ -25,34 +26,6 @@ interface Template {
   templateName: string;
   imageUrl: string;
 }
-
-// Mock data for recent projects
-const recentProjects = [
-  {
-    id: 1,
-    title: "Summer Sale Poster",
-    imageUrl:
-      "https://placehold.co/400x300/60a5fa/ffffff?text=Summer+Sale+Poster",
-  },
-  {
-    id: 2,
-    title: "Webinar Ad",
-    imageUrl:
-      "https://placehold.co/400x300/34d399/ffffff?text=Webinar+Ad",
-  },
-  {
-    id: 3,
-    title: "Company Newsletter",
-    imageUrl:
-      "https://placehold.co/400x300/f87171/ffffff?text=Newsletter",
-  },
-  {
-    id: 4,
-    title: "New Product Launch",
-    imageUrl:
-      "https://placehold.co/400x300/a78bfa/ffffff?text=Product+Launch",
-  },
-];
 
 // Card component for displaying a design thumbnail and title
 const DesignCard = ({
@@ -133,22 +106,11 @@ export default function DashboardPage() {
 
   return (
     <main className="flex-1 min-h-screen px-4 sm:px-6 lg:px-12 xl:px-20 transition-all duration-300 bg-transparent text-gray-900">
-      {/* --- Header --- */}
+          {/* --- Header --- */}
       <div className="my-4 cursor-pointer hidden lg:block">
         <Header />
       </div>
-
-      <header className="mb-8 hidden lg:block">
-        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-2">
-          Welcome back,{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-teal-600 to-indigo-700">
-            {user?.username || "Guest"}
-          </span>
-        </h1>
-        <p className="text-lg text-gray-600">
-          Let's get your creative projects started.
-        </p>
-      </header>
+      <Usernameheader/>
 
       {/* --- Advanced Analytics --- */}
       <section className="mb-12">
@@ -204,26 +166,23 @@ export default function DashboardPage() {
         </div>
       </section>
 
-{/* --- Newest Templates --- */}
-<NewTemplates />
+      {/* --- Newest Templates --- */}
+      <NewTemplates />
 
-{/* --- Visiting Cards --- */}
-<div className="mt-8">
-  <VisitingCards />
-</div>
+      {/* --- Visiting Cards --- */}
+      <div className="mt-8">
+        <VisitingCards />
+      </div>
 
-{/* --- Visiting Cards --- */}
-<div className="mt-8">
-  <Certificates/>
-</div>
-
-
-<div className="mt-8">
-  <Aicreative/>
-</div>
+      {/* --- Visiting Cards --- */}
+      <div className="mt-8">
+        <Certificates/>
+      </div>
 
 
-
+      <div className="mt-8">
+        <Aicreative/>
+      </div>
 
       {/* --- Footer --- */}
       <Footer />
