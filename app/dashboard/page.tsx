@@ -39,7 +39,7 @@ const DesignCard = ({
   actionText: string;
   actionIcon: React.ReactNode;
 }) => (
-  <div className="group relative overflow-hidden rounded-xl bg-gray-100 border border-gray-300 shadow-lg transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl cursor-pointer">
+  <div className="group relative overflow-hidden rounded-xl bg-transparent border border-gray-300 shadow-lg transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl cursor-pointer">
     {imageUrl && (
       <img
         src={imageUrl}
@@ -47,8 +47,8 @@ const DesignCard = ({
         className="w-full h-auto rounded-t-xl object-cover transition-opacity duration-300 group-hover:opacity-80"
       />
     )}
-    <div className="absolute inset-0 bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex items-center justify-center">
-      <button className="bg-white text-gray-900 font-semibold px-6 py-2 rounded-full flex items-center gap-2 transform transition-transform duration-300 group-hover:scale-100 scale-90 cursor-pointer">
+    <div className="absolute inset-0 bg-black/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex items-center justify-center">
+      <button className="bg-white/90 text-gray-900 font-semibold px-6 py-2 rounded-full flex items-center gap-2 transform transition-transform duration-300 group-hover:scale-100 scale-90 cursor-pointer">
         {actionIcon}
         <span>{actionText}</span>
       </button>
@@ -72,7 +72,7 @@ const MetricCard = ({
   color: string;
 }) => (
   <div
-    className={`p-4 rounded-xl shadow-lg border border-gray-300 flex flex-col items-start gap-2 bg-gray-100 transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl cursor-pointer`}
+    className={`p-4 rounded-xl shadow-md border border-gray-300 flex flex-col items-start gap-2 bg-transparent transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl cursor-pointer`}
   >
     <div className={`p-2 rounded-full text-white ${color}`}>{icon}</div>
     <h4 className="text-xl font-bold text-gray-900 mt-2">{value}</h4>
@@ -106,7 +106,7 @@ export default function DashboardPage() {
 
   return (
     <main className="flex-1 min-h-screen px-4 sm:px-6 lg:px-12 xl:px-20 transition-all duration-300 bg-transparent text-gray-900">
-          {/* --- Header --- */}
+      {/* --- Header --- */}
       <div className="my-4 cursor-pointer hidden lg:block">
         <Header />
       </div>
@@ -147,19 +147,19 @@ export default function DashboardPage() {
       <section className="mb-12">
         <h2 className="text-xl font-semibold mb-6">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <button className="flex items-center justify-center gap-2 p-4 rounded-xl bg-blue-600/40 border border-blue-400/50 shadow-md text-gray-900 font-semibold hover:bg-blue-600/60 transition-all duration-300 active:scale-[0.98] cursor-pointer">
+          <button className="flex items-center justify-center gap-2 p-4 rounded-xl bg-blue-600/30 border border-blue-400/40 shadow-md text-gray-900 font-semibold hover:bg-blue-600/50 transition-all duration-300 active:scale-[0.98] cursor-pointer">
             <Plus size={20} />
             <span>Create New Poster</span>
           </button>
-          <button className="flex items-center justify-center gap-2 p-4 rounded-xl bg-purple-600/40 border border-purple-400/50 shadow-md text-gray-900 font-semibold hover:bg-purple-600/60 transition-all duration-300 active:scale-[0.98] cursor-pointer">
+          <button className="flex items-center justify-center gap-2 p-4 rounded-xl bg-purple-600/30 border border-purple-400/40 shadow-md text-gray-900 font-semibold hover:bg-purple-600/50 transition-all duration-300 active:scale-[0.98] cursor-pointer">
             <FileText size={20} />
             <span>Generate Visiting Card</span>
           </button>
-          <button className="flex items-center justify-center gap-2 p-4 rounded-xl bg-teal-600/40 border border-teal-400/50 shadow-md text-gray-900 font-semibold hover:bg-teal-600/60 transition-all duration-300 active:scale-[0.98] cursor-pointer">
+          <button className="flex items-center justify-center gap-2 p-4 rounded-xl bg-teal-600/30 border border-teal-400/40 shadow-md text-gray-900 font-semibold hover:bg-teal-600/50 transition-all duration-300 active:scale-[0.98] cursor-pointer">
             <LayoutGrid size={20} />
             <span>Manage Templates</span>
           </button>
-          <button className="flex items-center justify-center gap-2 p-4 rounded-xl bg-red-600/40 border border-red-400/50 shadow-md text-gray-900 font-semibold hover:bg-red-600/60 transition-all duration-300 active:scale-[0.98] cursor-pointer">
+          <button className="flex items-center justify-center gap-2 p-4 rounded-xl bg-red-600/30 border border-red-400/40 shadow-md text-gray-900 font-semibold hover:bg-red-600/50 transition-all duration-300 active:scale-[0.98] cursor-pointer">
             <Bell size={20} />
             <span>View Notifications</span>
           </button>
@@ -174,12 +174,12 @@ export default function DashboardPage() {
         <VisitingCards />
       </div>
 
-      {/* --- Visiting Cards --- */}
+      {/* --- Certificates --- */}
       <div className="mt-8">
         <Certificates/>
       </div>
 
-
+      {/* --- AI Creative --- */}
       <div className="mt-8">
         <Aicreative/>
       </div>
