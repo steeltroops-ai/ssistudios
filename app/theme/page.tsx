@@ -11,12 +11,6 @@ const SunIcon = () => (
   </svg>
 );
 
-const MoonIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-16 h-16">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 12c0 5.385 4.365 9.75 9.75 9.75c1.07 0 2.105-.183 3.07-.518z" />
-  </svg>
-);
-
 const FlowerIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-16 h-16">
     <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9.75 21.75M3.75 15.904l1.84-1.84a5.25 5.25 0 017.424 0l.969.969a1.125 1.125 0 001.957 0h3.843a1.125 1.125 0 001.957 0l.969-.969a5.25 5.25 0 017.424 0l1.84 1.84M15.75 12.185v-1.378a3.375 3.375 0 00-3.375-3.375H12a2.625 2.625 0 00-2.625 2.625v1.378M9.75 15.904h7.5M10.5 7.5v-1.875c0-.621.504-1.125 1.125-1.125h.75c.621 0 1.125.504 1.125 1.125v1.875m-3.75 0h7.5" />
@@ -33,9 +27,9 @@ const ThemePageComponent = () => {
   const { theme, setTheme } = useTheme();
   const [applying, setApplying] = useState(false);
 
+  // Only light and flower themes
   const themes = [
     { name: "light", label: "Sunrise", icon: <SunIcon />, bgColor: "bg-white", textColor: "text-gray-800" },
-    { name: "dark", label: "Midnight", icon: <MoonIcon />, bgColor: "bg-gray-800", textColor: "text-gray-100" },
     { name: "flower", label: "Blossom", icon: <FlowerIcon />, bgColor: "bg-pink-100", textColor: "text-gray-900" },
   ];
 
@@ -68,7 +62,7 @@ const ThemePageComponent = () => {
       </div>
 
       {/* Theme Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl py-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl py-12">
         {themes.map((t) => (
           <motion.div
             key={t.name}
