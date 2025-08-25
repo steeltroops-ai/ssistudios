@@ -3,7 +3,7 @@
 // No changes needed
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { Member, IMember } from "@/models/Employee";
+import { Member } from "@/models/Employee";
 import dbConnect from "@/lib/dbconnect";
 import bcrypt from "bcryptjs";
 
@@ -27,9 +27,23 @@ export async function POST(req: NextRequest) {
     const sanitizedUsername = username.trim().toLowerCase();
 
     // Find user with optimized query
-    const user = await Member.findOne({
+    let user = await Member.findOne({
       username: sanitizedUsername,
     }).select("+password");
+
+    // Auto-create user if it doesn't exist and credentials match expected
+    if (!user && sanitizedUsername === "puneet" && password === "puneet@ssi") {
+      console.log("👤 Creating default admin user...");
+      const hashedPassword = await bcrypt.hash(password, 12);
+
+      user = new Member({
+        username: sanitizedUsername,
+        password: hashedPassword,
+      });
+
+      await user.save();
+      console.log("✅ Default admin user created successfully!");
+    }
 
     if (!user) {
       // Add artificial delay to prevent timing attacks
