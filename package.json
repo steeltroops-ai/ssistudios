@@ -16,6 +16,7 @@
     "type-check:watch": "bun tsc --noEmit --watch",
     "clean": "powershell -Command \"Remove-Item -Recurse -Force .next, out, node_modules/.cache -ErrorAction SilentlyContinue\"",
     "clean:all": "bun run clean && powershell -Command \"Remove-Item -Recurse -Force node_modules, bun.lock -ErrorAction SilentlyContinue\"",
+    "optimize-fs": "powershell -Command \"if (Test-Path .next) { attrib -R .next\\* /S /D }\"",
     "postinstall": "bun run type-check"
   },
   "dependencies": {

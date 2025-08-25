@@ -40,6 +40,16 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# bun
+bun.lockb
+.bun/
+
+# filesystem optimization
+.next/cache/
+.next/trace
+.next/server/
+node_modules/.cache/
+
 #augment code
 .augment/
 .augment/rules/

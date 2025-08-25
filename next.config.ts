@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   // Performance optimizations
@@ -13,6 +14,24 @@ const nextConfig: NextConfig = {
     // Additional performance features
     optimizeCss: true,
     scrollRestoration: true,
+  },
+
+  // Filesystem performance optimizations
+  distDir: ".next",
+  generateEtags: false,
+
+  // Webpack optimizations for faster builds
+  webpack: (config, { dev, isServer }) => {
+    // Optimize filesystem access
+    config.watchOptions = {
+      poll: false,
+      ignored: ["**/node_modules/**", "**/.git/**", "**/.next/**", "**/out/**"],
+    };
+
+    // Reduce filesystem calls
+    config.resolve.symlinks = false;
+
+    return config;
   },
 
   // Turbopack configuration (stable)
@@ -40,7 +59,7 @@ const nextConfig: NextConfig = {
       },
     },
     resolveAlias: {
-      "@": "./",
+      "@": path.resolve("./"),
     },
   },
 
