@@ -67,7 +67,7 @@ const menu: MenuItem[] = [
     name: 'Settings',
     icon: Settings,
     children: [
-      { name: 'Theme', path: '/settings/theme' },
+      { name: 'Theme', path: '/theme' },
       { name: 'Profile & Preferences', path: '/userprofile' },
     ],
   },
