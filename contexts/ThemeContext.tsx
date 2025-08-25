@@ -1,13 +1,11 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { motion } from "framer-motion";
 
-// --- Types ---
+// Types
 export type Theme = "light" | "dark" | "flower";
 export type ThemeContextType = { theme: Theme; setTheme: (theme: Theme) => void };
 
-// --- Context ---
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const useTheme = () => {
@@ -20,13 +18,11 @@ export const useTheme = () => {
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setThemeState] = useState<Theme>("light");
 
-  // Load saved theme from localStorage
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as Theme | null;
     if (savedTheme) setThemeState(savedTheme);
   }, []);
 
-  // Apply class to <html> whenever theme changes
   useEffect(() => {
     const root = document.documentElement;
     root.className = "";
@@ -38,65 +34,122 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("theme", newTheme);
   };
 
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
-      {children}
-      {/* Cherry Blossom petals rendered globally */}
-      <CherryBlossomBackground />
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>;
 };
 
-// --- Cherry Blossom Background ---
+// --- Cherry Blossom Background with Artistic Japanese Tree ---
 export const CherryBlossomBackground = () => {
   const { theme } = useTheme();
-  const [size, setSize] = useState({ width: 0, height: 0 });
 
-  useEffect(() => {
-    const handleResize = () => setSize({ width: window.innerWidth, height: window.innerHeight });
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  if (theme !== "flower") return null;
 
-  // Petals are visible on all themes
-  const petalColor = theme === "dark" ? "bg-pink-300" : "bg-pink-500";
-
-  // Light pink gradient background for flower theme
-  const bgStyle =
-    theme === "flower"
-      ? { background: "linear-gradient(to bottom, #fff0f5, #ffe4e1)" } // soft pink gradient
-      : {};
-
-  const petals = Array.from({ length: 300 }).map((_, i) => {
-    const petalSize = Math.random() * 6 + 4;
-    const startX = Math.random() * size.width;
-    const duration = Math.random() * 6 + 6;
+  // Random petals from branches
+  const branchPetals = Array.from({ length: 15 }).map((_, i) => {
+    const size = Math.random() * 6 + 3;
+    const left = 70 + Math.random() * 20; // around tree right side
+    const top = 50 + Math.random() * 50;
+    const duration = 8 + Math.random() * 6;
     const delay = Math.random() * 5;
-    const rotate = Math.random() * 360;
-
     return (
-      <motion.div
+      <div
         key={i}
-        className={`absolute ${petalColor} rounded-full shadow-md`}
-        style={{ width: petalSize, height: petalSize, top: -20, left: startX }}
-        animate={{
-          y: [0, size.height + 20],
-          x: [startX, startX + (Math.random() * 120 - 60)],
-          rotate: [0, rotate + 360],
-          opacity: [0.9, 0.5, 0],
+        className="absolute bg-pink-300 rounded-full shadow-md animate-fall"
+        style={{
+          width: size,
+          height: size,
+          left: `${left}%`,
+          top: `${top}%`,
+          animationDuration: `${duration}s`,
+          animationDelay: `${delay}s`,
         }}
-        transition={{ duration, repeat: Infinity, repeatType: "loop", ease: "linear", delay }}
       />
     );
   });
 
   return (
-    <div
-      className="fixed inset-0 z-0 overflow-hidden pointer-events-none"
-      style={bgStyle}
-    >
-      {petals}
+    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-pink-200">
+      {/* Artistic Japanese tree on the right */}
+      <svg
+        className="absolute right-0 bottom-0 h-3/4 w-auto"
+        viewBox="0 0 200 400"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* Thick trunk */}
+        <path
+          d="M100 400 C95 300 105 250 100 200 C95 150 105 120 100 80"
+          stroke="#8B5A2B"
+          strokeWidth="8"
+          strokeLinecap="round"
+        />
+        {/* Long curved branches */}
+        <path
+          d="M100 200 C130 180 170 150 180 120"
+          stroke="#8B5A2B"
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+        <path
+          d="M100 150 C70 130 40 100 30 70"
+          stroke="#8B5A2B"
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+        <path
+          d="M100 120 C120 100 160 80 170 60"
+          stroke="#8B5A2B"
+          strokeWidth="4"
+          strokeLinecap="round"
+        />
+        {/* Blossoms on branches */}
+        <circle cx="180" cy="120" r="10" fill="#F9A8D4" />
+        <circle cx="170" cy="60" r="8" fill="#FBB6CE" />
+        <circle cx="30" cy="70" r="10" fill="#F9A8D4" />
+        <circle cx="40" cy="100" r="6" fill="#FBB6CE" />
+      </svg>
+
+      {/* Falling petals from sky */}
+      {Array.from({ length: 30 }).map((_, i) => {
+        const size = Math.random() * 6 + 4;
+        const left = Math.random() * 100; // percentage
+        const duration = Math.random() * 10 + 10; // seconds
+        const delay = Math.random() * 5;
+
+        return (
+          <div
+            key={i}
+            className="absolute bg-pink-400 rounded-full shadow-md animate-fall"
+            style={{
+              width: size,
+              height: size,
+              left: `${left}%`,
+              animationDuration: `${duration}s`,
+              animationDelay: `${delay}s`,
+            }}
+          />
+        );
+      })}
+
+      {/* Petals from branches */}
+      {branchPetals}
+
+      <style jsx>{`
+        @keyframes fall {
+          0% {
+            transform: translateY(-10px) rotate(0deg);
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(100vh) rotate(360deg);
+            opacity: 0;
+          }
+        }
+        .animate-fall {
+          animation-name: fall;
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
+        }
+      `}</style>
     </div>
   );
 };
