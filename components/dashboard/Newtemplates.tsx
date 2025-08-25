@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from 'next/navigation'; // <-- add at top with other imports
+import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, FC } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -73,7 +73,7 @@ interface TemplateDetailModalProps {
 const TemplateDetailModal: FC<TemplateDetailModalProps> = ({ template, onClose, onDelete }) => {
     const [isConfirmingDelete, setIsConfirmingDelete] = useState<boolean>(false);
     const [isDeleting, setIsDeleting] = useState<boolean>(false);
-    const router = useRouter(); // initialize router
+    const router = useRouter();
 
     useEffect(() => {
         if (template) {
@@ -154,7 +154,7 @@ const TemplateDetailModal: FC<TemplateDetailModalProps> = ({ template, onClose, 
                         <p className="text-sm text-zinc-600 mb-6">{template.description}</p>
 
                         <div className="flex flex-wrap gap-2 mb-6">
-                            {(template.tags || []).map((tag) => ( // <-- safe fallback
+                            {(template.tags || []).map((tag) => (
                                 <span key={tag} className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
                                     {tag}
                                 </span>
@@ -232,7 +232,6 @@ const TemplateDetailModal: FC<TemplateDetailModalProps> = ({ template, onClose, 
     );
 };
 
-
 // --- CARD ---
 type DesignCardProps = {
     template: Template;
@@ -293,7 +292,6 @@ export default function App() {
     const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>("");
 
-    // --- ADMIN DEFAULT TEMPLATE ---
     const [adminTemplate, setAdminTemplate] = useState<Template | null>(null);
 
     useEffect(() => {
@@ -345,26 +343,17 @@ export default function App() {
     }, []);
 
     const handleDeleteTemplate = async (templateId: string) => {
-        const promise = fetch(`/api/templates/${templateId}`, {
-            method: 'DELETE',
-        });
+        const promise = fetch(`/api/templates/${templateId}`, { method: 'DELETE' });
 
         toast.promise(promise, {
             loading: 'Deleting template...',
             success: (res) => {
-                if (!res.ok) {
-                    throw new Error('Failed to delete. Please try again.');
-                }
-                setNewTemplates((prevTemplates) =>
-                    prevTemplates.filter((template) => template._id !== templateId)
-                );
+                if (!res.ok) throw new Error('Failed to delete. Please try again.');
+                setNewTemplates((prev) => prev.filter((t) => t._id !== templateId));
                 setSelectedTemplate(null);
                 return 'Template deleted successfully!';
             },
-            error: (err) => {
-                console.error("Deletion failed:", err.message);
-                return err.message || 'An unknown error occurred.';
-            },
+            error: (err) => err.message || 'An unknown error occurred.',
         });
     };
 
@@ -423,27 +412,18 @@ export default function App() {
                                         <DesignCard template={adminTemplate} onCardClick={setSelectedTemplate} />
                                     </motion.div>
                                 )}
-                                {filteredTemplates.length > 0
-                                    ? filteredTemplates.map((template) => (
-                                        <motion.div
-                                            key={template._id}
-                                            layout
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, scale: 0.8 }}
-                                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                                        >
-                                            <DesignCard template={template} onCardClick={setSelectedTemplate} />
-                                        </motion.div>
-                                    ))
-                                    : (
-                                        <div className="col-span-full text-center py-10 px-4 rounded-xl bg-zinc-50 border border-zinc-200 text-zinc-500">
-                                            <Archive className="mx-auto h-10 w-10 text-zinc-400" />
-                                            <h3 className="mt-3 text-base font-semibold">No Templates Found</h3>
-                                            <p className="mt-1 text-sm">Your search for "{searchQuery}" did not return any results.</p>
-                                        </div>
-                                    )
-                                }
+                                {filteredTemplates.map((template) => (
+                                    <motion.div
+                                        key={template._id}
+                                        layout
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.8 }}
+                                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                    >
+                                        <DesignCard template={template} onCardClick={setSelectedTemplate} />
+                                    </motion.div>
+                                ))}
                             </>
                         )
                     }
