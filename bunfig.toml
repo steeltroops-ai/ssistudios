@@ -1,0 +1,13 @@
+# Bun configuration file
+[install]
+# Performance optimizations
+cache = true
+exact = false
+production = false
+optional = true
+dev = true
+peer = true
+frozenLockfile = false
+
+# Registry configuration
+registry = "https://registry.npmjs.org/"

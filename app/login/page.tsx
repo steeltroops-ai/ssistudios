@@ -18,6 +18,9 @@ export default function LoginPage() {
     setError("");
     setIsLoading(true);
 
+    // Optimistic UI - start loading immediately
+    const startTime = Date.now();
+
     try {
       const res = await fetch("/api/admin-login", {
         method: "POST",
@@ -32,10 +35,17 @@ export default function LoginPage() {
         throw new Error(data.message || "Login failed. Please try again.");
       }
 
-      // On success, just call the login function.
-      // The AuthProvider will handle the redirect automatically.
+      // Show performance metrics in development
+      if (process.env.NODE_ENV === "development" && data._meta?.responseTime) {
+        console.log(`Login API response time: ${data._meta.responseTime}`);
+        console.log(`Total login time: ${Date.now() - startTime}ms`);
+      }
+
+      // On success, call the login function with instant feedback
       login(data.user);
 
+      // Keep loading state briefly for smooth transition
+      setTimeout(() => setIsLoading(false), 100);
     } catch (err: any) {
       console.error("API Error Response:", err);
       setError(err.message);
@@ -61,10 +71,12 @@ export default function LoginPage() {
         </div>
       )}
 
-      <div className="relative z-10 w-full max-w-sm rounded-xl shadow-lg p-8
+      <div
+        className="relative z-10 w-full max-w-sm rounded-xl shadow-lg p-8
                      bg-white md:bg-gray-800/20 md:backdrop-blur-md
                      border border-gray-200 md:border-gray-700/50
-                     md:text-gray-100">
+                     md:text-gray-100"
+      >
         <h1 className="text-2xl font-semibold text-gray-900 md:text-gray-100 mb-2 text-center">
           SSI Studios Admin
         </h1>
@@ -120,7 +132,7 @@ export default function LoginPage() {
                          md:bg-gray-800/40 md:border md:border-gray-700/50 md:hover:bg-gray-700/50 md:shadow-inner"
             disabled={isLoading}
           >
-            {isLoading ? 'Logging in...' : 'Login'}
+            {isLoading ? "Logging in..." : "Login"}
           </button>
         </form>
       </div>

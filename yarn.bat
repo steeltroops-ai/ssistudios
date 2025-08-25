@@ -1,0 +1,3 @@
+@echo off
+echo Redirecting yarn command to Bun...
+bun %*

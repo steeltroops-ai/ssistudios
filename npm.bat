@@ -1,0 +1,3 @@
+@echo off
+echo Redirecting npm command to Bun...
+bun %*

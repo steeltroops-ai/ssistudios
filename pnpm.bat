@@ -1,0 +1,3 @@
+@echo off
+echo Redirecting pnpm command to Bun...
+bun %*
