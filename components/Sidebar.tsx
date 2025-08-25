@@ -59,8 +59,8 @@ const menu: MenuItem[] = [
     name: 'Branding Assets',
     icon: Palette,
     children: [
-      { name: 'Logo Library', path: '/branding/logo-library' },
-      { name: 'Fonts & Colors', path: '/branding/fonts-colors' },
+      { name: 'Logo Library', path: '/logo' },
+      { name: 'Fonts & Colors', path: '/theme' },
     ],
   },
   {
