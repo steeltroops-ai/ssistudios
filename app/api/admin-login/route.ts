@@ -3,8 +3,8 @@
 // No changes needed
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { Member } from "@/models/Employee";
-import dbConnect from "@/lib/dbconnect";
+import { Member } from "@/lib/models/Employee";
+import dbConnect from "@/lib/database/dbconnect";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import dbConnect from "@/lib/dbconnect";
-import { Member } from "@/models/Employee";
+import dbConnect from "@/lib/database/dbconnect";
+import { Member } from "@/lib/models/Employee";
 
 // Handle GET /api/user
 export async function GET(req: Request) {
@@ -13,7 +13,10 @@ export async function GET(req: Request) {
     const userId = searchParams.get("userId");
 
     if (!userId) {
-      return NextResponse.json({ message: "User not authenticated." }, { status: 401 });
+      return NextResponse.json(
+        { message: "User not authenticated." },
+        { status: 401 }
+      );
     }
 
     // Find user and exclude only __v
@@ -24,9 +27,11 @@ export async function GET(req: Request) {
     }
 
     return NextResponse.json({ data: userProfile }, { status: 200 });
-
   } catch (error) {
     console.error("API Error:", error);
-    return NextResponse.json({ message: "Internal Server Error." }, { status: 500 });
+    return NextResponse.json(
+      { message: "Internal Server Error." },
+      { status: 500 }
+    );
   }
 }

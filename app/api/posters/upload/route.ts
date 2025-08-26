@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import dbConnect from "@/lib/dbconnect";
-import Template from "@/models/Template";
+import dbConnect from "@/lib/database/dbconnect";
+import Template from "@/lib/models/Template";
 
 export async function POST(req: Request) {
   try {
@@ -29,8 +29,14 @@ export async function POST(req: Request) {
       ownerId: userId,
     });
 
-    return NextResponse.json({ success: true, data: newTemplate }, { status: 201 });
+    return NextResponse.json(
+      { success: true, data: newTemplate },
+      { status: 201 }
+    );
   } catch (err: any) {
-    return NextResponse.json({ success: false, message: err.message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: err.message },
+      { status: 500 }
+    );
   }
 }

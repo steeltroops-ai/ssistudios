@@ -1,6 +1,6 @@
-import { NextResponse, type NextRequest } from 'next/server';
-import dbConnect from '@/lib/dbconnect';
-import Template from '@/models/Template';
+import { NextResponse, type NextRequest } from "next/server";
+import dbConnect from "@/lib/database/dbconnect";
+import Template from "@/lib/models/Template";
 
 export async function DELETE(
   request: NextRequest,
@@ -9,7 +9,10 @@ export async function DELETE(
   const { templateId } = await params;
 
   if (!templateId) {
-    return NextResponse.json({ error: "Template ID is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Template ID is required" },
+      { status: 400 }
+    );
   }
 
   try {
@@ -17,7 +20,10 @@ export async function DELETE(
 
     const deletedTemplate = await Template.findByIdAndDelete(templateId);
     if (!deletedTemplate) {
-      return NextResponse.json({ error: "Template not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Template not found" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json(
@@ -25,7 +31,10 @@ export async function DELETE(
       { status: 200 }
     );
   } catch (error: any) {
-    console.error('Deletion failed:', error);
-    return NextResponse.json({ error: "Server error during template deletion" }, { status: 500 });
+    console.error("Deletion failed:", error);
+    return NextResponse.json(
+      { error: "Server error during template deletion" },
+      { status: 500 }
+    );
   }
 }

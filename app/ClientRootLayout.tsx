@@ -1,14 +1,16 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Sidebar from "@/components/Sidebar";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import Sidebar from "@/components/layout/Sidebar";
+import { AuthProvider, useAuth } from "@/lib/contexts/AuthContext";
 import {
   ThemeProvider,
   useTheme,
   CherryBlossomBackground,
-} from "@/contexts/ThemeContext";
-import ErrorBoundary from "@/components/ErrorBoundary";
+} from "@/lib/contexts/ThemeContext";
+import { NavigationProvider } from "@/lib/contexts/NavigationContext";
+import MainContainer from "@/components/shared/MainContainer";
+import ErrorBoundary from "@/components/layout/ErrorBoundary";
 import { ReactNode, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
@@ -97,13 +99,13 @@ function AppLayout({ children }: { children: ReactNode }) {
     };
   }, [isSidebarOpen]);
 
-  // Background classes
+  // Optimized background classes for better performance
   const themeBg =
     theme === "light"
       ? "bg-white text-gray-900"
-      : theme === "dark"
-      ? "bg-black text-white"
-      : "relative overflow-hidden text-gray-900"; // flower theme handled by CherryBlossomBackground
+      : theme === "flower"
+      ? "bg-gradient-to-br from-pink-50 to-white text-gray-900"
+      : "bg-black text-white";
 
   if (isEditorPage) return <>{children}</>;
 
@@ -111,38 +113,32 @@ function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <CherryBlossomBackground /> {/* ✅ Render petals globally */}
+      {/* Conditionally render CherryBlossomBackground only for flower theme */}
+      {theme === "flower" && <CherryBlossomBackground />}
       {!isLoginPage ? (
-        <div className={`flex relative z-10 min-h-screen ${themeBg}`}>
-          <Sidebar
-            forceActive={forceActive}
-            isOpen={isSidebarOpen}
-            toggleSidebar={toggleSidebar}
-          />
-          <main className="flex-1 overflow-y-auto transition-all duration-300 p-4 lg:p-8 relative">
-            <div className="flex items-center justify-between mb-6 lg:hidden">
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
-                {pathname === "/dashboard"
-                  ? "Dashboard"
-                  : pathname.startsWith("/poster/new")
-                  ? "Creative Studio"
-                  : pathname.startsWith("/templates")
-                  ? "Templates"
-                  : pathname.startsWith("/settings")
-                  ? "Settings"
-                  : "App"}
-              </h1>
-              <button
+        <NavigationProvider>
+          <div className={`relative z-10 min-h-screen ${themeBg}`}>
+            {/* Sidebar - Fixed positioning for proper layout control */}
+            <Sidebar
+              forceActive={forceActive}
+              isOpen={isSidebarOpen}
+              toggleSidebar={toggleSidebar}
+            />
+
+            {/* Mobile Overlay */}
+            {isSidebarOpen && (
+              <div
+                className="fixed inset-0 bg-black/50 z-40 lg:hidden"
                 onClick={toggleSidebar}
-                className="p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
-                aria-label="Toggle sidebar"
-              >
-                <AnimatedHamburgerIcon isOpen={isSidebarOpen} size={28} />
-              </button>
+              />
+            )}
+
+            {/* Main Content Container - Positioned adjacent to sidebar */}
+            <div className="lg:ml-20 min-h-screen flex flex-col">
+              <MainContainer>{children}</MainContainer>
             </div>
-            {children}
-          </main>
-        </div>
+          </div>
+        </NavigationProvider>
       ) : (
         <main className="min-h-screen flex flex-col items-center justify-center relative z-10 px-4 bg-white">
           {children}

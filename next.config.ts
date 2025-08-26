@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
-  // Performance optimizations
+  // Performance optimizations (stable version compatible)
   experimental: {
     optimizePackageImports: [
       "lucide-react",
@@ -14,14 +14,56 @@ const nextConfig: NextConfig = {
     // Additional performance features
     optimizeCss: true,
     scrollRestoration: true,
+    // Stable performance features
+    optimizeServerReact: true,
+    webVitalsAttribution: ["CLS", "FCP", "FID", "INP", "LCP", "TTFB"],
   },
+
+  // Server external packages (moved from experimental)
+  serverExternalPackages: ["mongoose", "mongodb"],
 
   // Filesystem performance optimizations
   distDir: ".next",
   generateEtags: false,
+  reactStrictMode: true,
+
+  // Headers for performance
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-DNS-Prefetch-Control",
+            value: "on",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "origin-when-cross-origin",
+          },
+        ],
+      },
+    ];
+  },
 
   // Webpack optimizations for faster builds
-  webpack: (config, { dev, isServer }) => {
+  webpack: (config) => {
     // Optimize filesystem access
     config.watchOptions = {
       poll: false,
@@ -62,9 +104,6 @@ const nextConfig: NextConfig = {
       "@": path.resolve("./"),
     },
   },
-
-  // Server external packages
-  serverExternalPackages: ["mongoose", "mongodb"],
 
   // Image optimization with aggressive settings
   images: {
