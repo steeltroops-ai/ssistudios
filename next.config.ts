@@ -4,13 +4,7 @@ import path from "path";
 const nextConfig: NextConfig = {
   // Performance optimizations (stable version compatible)
   experimental: {
-    optimizePackageImports: [
-      "lucide-react",
-      "@heroicons/react",
-      "framer-motion",
-      "react-hot-toast",
-      "react-icons",
-    ],
+    optimizePackageImports: ["lucide-react", "react-hot-toast"],
     // Additional performance features
     optimizeCss: true,
     scrollRestoration: true,
@@ -129,12 +123,17 @@ const nextConfig: NextConfig = {
 
   // Bundle analyzer (development only)
   ...(process.env.ANALYZE === "true" && {
-    webpack: (config: any) => {
-      config.plugins.push(
-        new (require("@next/bundle-analyzer"))({
-          enabled: true,
-        })
-      );
+    webpack: (config: any, { isServer }: any) => {
+      if (!isServer) {
+        const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
+        config.plugins.push(
+          new BundleAnalyzerPlugin({
+            analyzerMode: "static",
+            openAnalyzer: false,
+            reportFilename: "../bundle-analyzer-report.html",
+          })
+        );
+      }
       return config;
     },
   }),
