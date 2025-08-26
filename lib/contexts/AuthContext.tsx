@@ -15,11 +15,23 @@ import { useRouter, usePathname } from "next/navigation";
 interface User {
   id: string;
   username: string;
+  email?: string;
+  fullName?: string;
+  isAdmin: boolean;
+  type: "user" | "admin";
+  isEmailVerified?: boolean;
+  preferences?: {
+    theme: "light" | "dark" | "flower";
+    notifications: boolean;
+    language: string;
+  };
+  lastLoginAt?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  isAdmin: boolean;
   login: (user: User) => void;
   logout: () => void;
   isLoading: boolean; // To handle initial auth check
@@ -101,6 +113,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     user,
     isAuthenticated: !!user,
+    isAdmin: !!user?.isAdmin,
     login,
     logout,
     isLoading,
