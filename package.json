@@ -30,6 +30,8 @@
     "clsx": "^2.1.1",
     "concat-map": "^0.0.2",
     "framer-motion": "^12.23.12",
+    "jsonwebtoken": "^9.0.2",
+    "lru-cache": "^11.0.2",
     "lucide-react": "^0.539.0",
     "mongodb": "^6.18.0",
     "mongoose": "^8.18.0",
@@ -45,6 +47,9 @@
   "devDependencies": {
     "@next/bundle-analyzer": "^15.5.1",
     "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/multer": "^1.4.12",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

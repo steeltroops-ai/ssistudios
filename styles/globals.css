@@ -29,21 +29,34 @@
   --editor-bg-primary: oklch(0.12 0 0); /* Deep dark background */
   --editor-bg-secondary: oklch(0.15 0 0); /* Panel backgrounds */
   --editor-bg-tertiary: oklch(0.18 0 0); /* Elevated surfaces */
+  --editor-bg-canvas: oklch(0.98 0 0); /* Canvas/artboard */
 
   /* Interactive Elements */
-  --editor-accent: oklch(0.55 0.16 240); /* Primary blue accent */
-  --editor-accent-hover: oklch(0.6 0.18 240); /* Hover state */
-  --editor-success: oklch(0.65 0.15 145); /* Success green */
-  --editor-success-hover: oklch(0.7 0.18 145); /* Success hover */
+  --editor-accent-primary: oklch(0.55 0.16 240); /* Primary blue accent */
+  --editor-accent-secondary: oklch(0.65 0.14 280); /* Purple accent */
+  --editor-accent-success: oklch(0.6 0.15 140); /* Success green */
+  --editor-accent-warning: oklch(0.7 0.15 60); /* Warning amber */
+  --editor-accent-danger: oklch(0.6 0.18 20); /* Danger red */
 
-  /* Text Colors */
+  /* Hover States */
+  --editor-accent-primary-hover: oklch(0.6 0.18 240); /* Primary hover */
+  --editor-accent-success-hover: oklch(0.65 0.18 140); /* Success hover */
+
+  /* Text Hierarchy */
   --editor-text-primary: oklch(0.95 0 0); /* Primary text */
   --editor-text-secondary: oklch(0.7 0 0); /* Secondary text */
-  --editor-text-muted: oklch(0.5 0 0); /* Muted text */
+  --editor-text-tertiary: oklch(0.5 0 0); /* Tertiary text */
+  --editor-text-inverse: oklch(0.15 0 0); /* Text on light */
+
+  /* Tool States */
+  --editor-tool-active: oklch(0.55 0.16 240); /* Active tool */
+  --editor-tool-hover: oklch(0.6 0.18 240); /* Tool hover */
+  --editor-tool-inactive: oklch(0.4 0 0); /* Inactive tool */
 
   /* Border Colors */
-  --editor-border-subtle: oklch(0.25 0 0); /* Subtle borders */
-  --editor-border-strong: oklch(0.35 0 0); /* Strong borders */
+  --editor-border-primary: oklch(0.25 0 0); /* Primary borders */
+  --editor-border-secondary: oklch(0.2 0 0); /* Secondary borders */
+  --editor-border-focus: oklch(0.55 0.16 240); /* Focus borders */
 
   /* Glassmorphism Variables */
   --glass-bg-opacity: 0.05;
@@ -69,6 +82,14 @@
   --bg-glass: rgba(250, 251, 252, 0.8);
   --bg-glass-elevated: rgba(250, 251, 252, 0.9);
   --bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Light Theme Editor Overrides */
+  --editor-bg-primary: oklch(0.98 0 0);
+  --editor-bg-secondary: oklch(0.95 0 0);
+  --editor-bg-tertiary: oklch(0.92 0 0);
+  --editor-text-primary: oklch(0.15 0 0);
+  --editor-text-secondary: oklch(0.4 0 0);
+  --editor-text-tertiary: oklch(0.6 0 0);
 }
 
 /* Dark Theme - Professional Dark Mode */
@@ -93,6 +114,11 @@
   --bg-glass: rgba(253, 242, 248, 0.8);
   --bg-glass-elevated: rgba(253, 242, 248, 0.9);
   --bg-overlay: rgba(219, 39, 119, 0.3);
+
+  /* Flower Theme Editor Overrides */
+  --editor-accent-primary: oklch(0.6 0.15 320); /* Magenta */
+  --editor-accent-secondary: oklch(0.65 0.12 280); /* Purple */
+  --editor-bg-secondary: oklch(0.15 0.02 320); /* Subtle magenta tint */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -201,13 +227,110 @@ body {
 }
 
 .professional-input:focus {
-  border-color: var(--editor-accent);
+  border-color: var(--editor-accent-primary);
   box-shadow: 0 0 0 2px rgba(85, 136, 240, 0.2);
   outline: none;
 }
 
 .professional-input::placeholder {
-  color: var(--editor-text-muted);
+  color: var(--editor-text-tertiary);
+}
+
+/* Editor-Specific Glass Panel */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.glass-panel:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.glass-panel:focus-within {
+  border-color: var(--editor-accent-primary);
+  box-shadow: 0 0 0 1px var(--editor-accent-primary);
+}
+
+/* Editor Button Variants */
+.editor-button-primary {
+  background: var(--editor-accent-primary);
+  color: white;
+  border: 1px solid var(--editor-accent-primary);
+  transition: all 0.2s ease;
+}
+
+.editor-button-primary:hover {
+  background: var(--editor-accent-primary-hover);
+  border-color: var(--editor-accent-primary-hover);
+  transform: scale(1.01);
+}
+
+.editor-button-success {
+  background: var(--editor-accent-success);
+  color: white;
+  border: 1px solid var(--editor-accent-success);
+  transition: all 0.2s ease;
+}
+
+.editor-button-success:hover {
+  background: var(--editor-accent-success-hover);
+  border-color: var(--editor-accent-success-hover);
+  transform: scale(1.01);
+}
+
+/* Tool Button States */
+.tool-button {
+  background: transparent;
+  border: 1px solid var(--editor-border-primary);
+  color: var(--editor-text-secondary);
+  transition: all 0.2s ease;
+}
+
+.tool-button:hover {
+  border-color: var(--editor-border-focus);
+  color: var(--editor-text-primary);
+  transform: scale(1.02);
+}
+
+.tool-button-active {
+  background: var(--editor-tool-active);
+  border-color: var(--editor-tool-active);
+  color: white;
+}
+
+/* Editor Typography */
+.editor-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--editor-text-primary);
+}
+
+.panel-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--editor-text-primary);
+}
+
+.tool-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--editor-text-secondary);
+}
+
+.property-label {
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--editor-text-tertiary);
 }
 
 /* Custom Scrollbar for Professional Look */
