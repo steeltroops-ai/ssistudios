@@ -3,14 +3,14 @@
 /* SSI Studios Professional Design System - Phase 2: Background Consistency */
 
 :root {
-  --background: #fafbfc;
+  --background: #ffffff;
   --foreground: #171717;
 
-  /* Professional Background System - Inspired by Linear, Notion, Figma */
-  --bg-primary: #fafbfc; /* Softer white - main background */
-  --bg-secondary: #f6f8fa; /* Slightly darker - panels */
-  --bg-tertiary: #f1f3f4; /* Card backgrounds */
-  --bg-accent: #e9ecef; /* Subtle accents */
+  /* Theme-Aware Background System - Professional Colors */
+  --bg-primary: #fafbfc;
+  --bg-secondary: #f6f8fa;
+  --bg-tertiary: #eef2f5;
+  --bg-accent: #e1e8ed;
   --bg-glass: rgba(250, 251, 252, 0.8);
   --bg-glass-elevated: rgba(250, 251, 252, 0.9);
   --bg-overlay: rgba(0, 0, 0, 0.5);
@@ -60,27 +60,27 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* Light Theme (Default) */
+/* Light Theme (Default) - Professional Background System */
 .light {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8fafc;
-  --bg-tertiary: #f1f5f9;
-  --bg-accent: #e2e8f0;
-  --bg-glass: rgba(255, 255, 255, 0.8);
-  --bg-glass-elevated: rgba(255, 255, 255, 0.9);
+  --bg-primary: #fafbfc; /* Softer off-white inspired by Linear */
+  --bg-secondary: #f6f8fa; /* Subtle gray for cards */
+  --bg-tertiary: #eef2f5; /* Elevated surfaces */
+  --bg-accent: #e1e8ed; /* Accent backgrounds */
+  --bg-glass: rgba(250, 251, 252, 0.8);
+  --bg-glass-elevated: rgba(250, 251, 252, 0.9);
   --bg-overlay: rgba(0, 0, 0, 0.5);
 }
 
-/* Dark Theme */
+/* Dark Theme - Professional Dark Mode */
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  --bg-accent: #475569;
-  --bg-glass: rgba(15, 23, 42, 0.8);
-  --bg-glass-elevated: rgba(15, 23, 42, 0.9);
+  --background: #0d1117; /* GitHub-inspired dark background */
+  --foreground: #f0f6fc;
+  --bg-primary: #0d1117; /* Main background */
+  --bg-secondary: #161b22; /* Card backgrounds */
+  --bg-tertiary: #21262d; /* Elevated surfaces */
+  --bg-accent: #30363d; /* Accent backgrounds */
+  --bg-glass: rgba(13, 17, 23, 0.8);
+  --bg-glass-elevated: rgba(13, 17, 23, 0.9);
   --bg-overlay: rgba(0, 0, 0, 0.7);
 }
 

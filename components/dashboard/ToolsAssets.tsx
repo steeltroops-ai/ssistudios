@@ -1,20 +1,23 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { 
-  FolderOpen, 
-  Type, 
-  Palette, 
+import {
+  FolderOpen,
+  Type,
+  Palette,
   Upload,
   Image as ImageIcon,
   Layers,
   Zap,
   ArrowRight,
   HardDrive,
-  Clock
+  Clock,
 } from "lucide-react";
-import { CardBackground, GlassBackground } from "@/components/shared/ThemeBackground";
-import { useNavigation } from "@/lib/contexts/NavigationContext";
+import {
+  CardBackground,
+  GlassBackground,
+} from "@/components/shared/ThemeBackground";
+import { useNavigation, PageType } from "@/lib/contexts/NavigationContext";
 
 interface Tool {
   id: string;
@@ -27,7 +30,7 @@ interface Tool {
     label: string;
     value: string;
   };
-  route: string;
+  route: PageType;
   isNew?: boolean;
 }
 
@@ -72,7 +75,7 @@ export default function ToolsAssets() {
         label: "Assets",
         value: "89",
       },
-      route: "brand",
+      route: "templates",
     },
     {
       id: "ai-tools",
@@ -85,7 +88,7 @@ export default function ToolsAssets() {
         label: "Tools",
         value: "12",
       },
-      route: "ai-tools",
+      route: "templates",
       isNew: true,
     },
     {
@@ -99,7 +102,7 @@ export default function ToolsAssets() {
         label: "Projects",
         value: "34",
       },
-      route: "layers",
+      route: "templates",
     },
     {
       id: "upload-center",
@@ -112,7 +115,7 @@ export default function ToolsAssets() {
         label: "Recent",
         value: "18",
       },
-      route: "upload",
+      route: "templates",
     },
   ];
 
@@ -144,8 +147,12 @@ export default function ToolsAssets() {
         {/* Section Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Tools & Assets</h2>
-            <p className="text-gray-600">Manage your creative resources and tools</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Tools & Assets
+            </h2>
+            <p className="text-gray-600">
+              Manage your creative resources and tools
+            </p>
           </div>
         </div>
 
@@ -161,19 +168,15 @@ export default function ToolsAssets() {
                   transition={{ delay: index * 0.1, duration: 0.4 }}
                   className="flex items-center gap-3"
                 >
-                  <div className={`${stat.color}`}>
-                    {stat.icon}
-                  </div>
+                  <div className={`${stat.color}`}>{stat.icon}</div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-700">
                       {stat.value}
                     </p>
-                    <p className="text-xs text-gray-500">
-                      {stat.label}
-                    </p>
+                    <p className="text-xs text-gray-500">{stat.label}</p>
                     {stat.percentage && (
                       <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
-                        <div 
+                        <div
                           className="bg-blue-600 h-1.5 rounded-full transition-all duration-500"
                           style={{ width: `${stat.percentage}%` }}
                         ></div>
@@ -200,7 +203,9 @@ export default function ToolsAssets() {
             >
               <GlassBackground className="p-6 h-full transition-all duration-300 group-hover:shadow-xl">
                 <div className="flex items-start justify-between mb-4">
-                  <div className={`p-3 rounded-xl bg-gradient-to-r ${tool.gradient} text-white transition-transform duration-300 group-hover:scale-110`}>
+                  <div
+                    className={`p-3 rounded-xl bg-gradient-to-r ${tool.gradient} text-white transition-transform duration-300 group-hover:scale-110`}
+                  >
                     {tool.icon}
                   </div>
                   <div className="flex items-center gap-2">
@@ -209,10 +214,13 @@ export default function ToolsAssets() {
                         New
                       </span>
                     )}
-                    <ArrowRight size={16} className="text-gray-400 group-hover:text-blue-600 transition-colors duration-300" />
+                    <ArrowRight
+                      size={16}
+                      className="text-gray-400 group-hover:text-blue-600 transition-colors duration-300"
+                    />
                   </div>
                 </div>
-                
+
                 <div className="space-y-3">
                   <div>
                     <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-300">

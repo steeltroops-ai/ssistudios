@@ -1,17 +1,20 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { 
-  ArrowRight, 
-  Image as ImageIcon, 
-  FileText, 
-  Award, 
+import {
+  ArrowRight,
+  Image as ImageIcon,
+  FileText,
+  Award,
   Palette,
   Sparkles,
-  TrendingUp
+  TrendingUp,
 } from "lucide-react";
-import { CardBackground, GlassBackground } from "@/components/shared/ThemeBackground";
-import { useNavigation } from "@/lib/contexts/NavigationContext";
+import {
+  CardBackground,
+  GlassBackground,
+} from "@/components/shared/ThemeBackground";
+import { useNavigation, PageType } from "@/lib/contexts/NavigationContext";
 
 interface TemplateCategory {
   id: string;
@@ -23,7 +26,7 @@ interface TemplateCategory {
   gradient: string;
   featured: boolean;
   thumbnail: string;
-  route: string;
+  route: PageType;
 }
 
 export default function TemplateCategories() {
@@ -33,13 +36,15 @@ export default function TemplateCategories() {
     {
       id: "posters",
       title: "Poster Templates",
-      description: "Professional posters for events, marketing, and announcements",
+      description:
+        "Professional posters for events, marketing, and announcements",
       icon: <ImageIcon size={24} />,
       count: 150,
       color: "text-blue-600",
       gradient: "from-blue-500 to-blue-600",
       featured: true,
-      thumbnail: "https://placehold.co/400x600/3B82F6/FFFFFF?text=Poster+Templates",
+      thumbnail:
+        "https://placehold.co/400x600/3B82F6/FFFFFF?text=Poster+Templates",
       route: "templates",
     },
     {
@@ -51,7 +56,8 @@ export default function TemplateCategories() {
       color: "text-green-600",
       gradient: "from-green-500 to-green-600",
       featured: true,
-      thumbnail: "https://placehold.co/400x250/10B981/FFFFFF?text=Business+Cards",
+      thumbnail:
+        "https://placehold.co/400x250/10B981/FFFFFF?text=Business+Cards",
       route: "cards",
     },
     {
@@ -80,8 +86,8 @@ export default function TemplateCategories() {
     },
   ];
 
-  const featuredCategories = categories.filter(cat => cat.featured);
-  const regularCategories = categories.filter(cat => !cat.featured);
+  const featuredCategories = categories.filter((cat) => cat.featured);
+  const regularCategories = categories.filter((cat) => !cat.featured);
 
   return (
     <section className="mb-12">
@@ -89,8 +95,12 @@ export default function TemplateCategories() {
         {/* Section Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Template Categories</h2>
-            <p className="text-gray-600">Explore our professional design templates</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Template Categories
+            </h2>
+            <p className="text-gray-600">
+              Explore our professional design templates
+            </p>
           </div>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -120,7 +130,9 @@ export default function TemplateCategories() {
                   {/* Category Info */}
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className={`p-3 rounded-xl bg-gradient-to-r ${category.gradient} text-white transition-transform duration-300 group-hover:scale-110`}>
+                      <div
+                        className={`p-3 rounded-xl bg-gradient-to-r ${category.gradient} text-white transition-transform duration-300 group-hover:scale-110`}
+                      >
                         {category.icon}
                       </div>
                       <div className="flex items-center gap-2">
@@ -130,14 +142,14 @@ export default function TemplateCategories() {
                         </span>
                       </div>
                     </div>
-                    
+
                     <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-300">
                       {category.title}
                     </h3>
                     <p className="text-gray-600 mb-4 text-sm leading-relaxed">
                       {category.description}
                     </p>
-                    
+
                     <div className="flex items-center gap-4">
                       <div className="flex items-center gap-2">
                         <TrendingUp size={16} className="text-green-600" />
@@ -145,7 +157,10 @@ export default function TemplateCategories() {
                           {category.count} templates
                         </span>
                       </div>
-                      <ArrowRight size={16} className="text-gray-400 group-hover:text-blue-600 transition-colors duration-300" />
+                      <ArrowRight
+                        size={16}
+                        className="text-gray-400 group-hover:text-blue-600 transition-colors duration-300"
+                      />
                     </div>
                   </div>
 
@@ -170,14 +185,19 @@ export default function TemplateCategories() {
               key={category.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: (featuredCategories.length + index) * 0.1, duration: 0.5 }}
+              transition={{
+                delay: (featuredCategories.length + index) * 0.1,
+                duration: 0.5,
+              }}
               whileHover={{ y: -4 }}
               onClick={() => navigateTo(category.route)}
               className="group cursor-pointer"
             >
               <GlassBackground className="p-6 transition-all duration-300 group-hover:shadow-xl">
                 <div className="flex items-center gap-4 mb-4">
-                  <div className={`p-3 rounded-xl bg-gradient-to-r ${category.gradient} text-white transition-transform duration-300 group-hover:scale-110`}>
+                  <div
+                    className={`p-3 rounded-xl bg-gradient-to-r ${category.gradient} text-white transition-transform duration-300 group-hover:scale-110`}
+                  >
                     {category.icon}
                   </div>
                   <div className="flex-1">
@@ -188,9 +208,12 @@ export default function TemplateCategories() {
                       {category.count} templates available
                     </p>
                   </div>
-                  <ArrowRight size={16} className="text-gray-400 group-hover:text-blue-600 transition-colors duration-300" />
+                  <ArrowRight
+                    size={16}
+                    className="text-gray-400 group-hover:text-blue-600 transition-colors duration-300"
+                  />
                 </div>
-                
+
                 <p className="text-sm text-gray-600 leading-relaxed">
                   {category.description}
                 </p>

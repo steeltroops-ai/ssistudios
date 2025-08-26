@@ -1,7 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Plus, Upload, LayoutGrid, Palette, FileText, Settings } from "lucide-react";
+import {
+  Plus,
+  Upload,
+  LayoutGrid,
+  Palette,
+  FileText,
+  Settings,
+} from "lucide-react";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { useNavigation } from "@/lib/contexts/NavigationContext";
 import { CardBackground } from "@/components/shared/ThemeBackground";
@@ -57,7 +64,7 @@ export default function DashboardHero() {
       icon: <Upload size={20} />,
       color: "bg-orange-500/20 border-orange-400/40 text-orange-700",
       hoverColor: "hover:bg-orange-500/30 hover:border-orange-400/60",
-      action: () => navigateTo("poster/upload"),
+      action: () => navigateTo("poster-editor"),
     },
     {
       id: "design-tools",
@@ -98,14 +105,15 @@ export default function DashboardHero() {
                 {displayName}
               </span>
             </motion.h1>
-            
+
             <motion.p
               className="text-lg text-gray-600 mb-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.6 }}
             >
-              Ready to create something amazing? Choose from our professional tools and templates.
+              Ready to create something amazing? Choose from our professional
+              tools and templates.
             </motion.p>
 
             <motion.div

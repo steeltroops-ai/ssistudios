@@ -89,7 +89,7 @@ export default function Footer() {
         {/* Bottom */}
         <div className="mt-2 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
           <p>&copy; {new Date().getFullYear()} SSI STUDIOS. All rights reserved.</p>
-          <p className="mt-1 md:mt-0">Developed By <span className="font-medium">SSIMAYA</span></p>
+          <p className="mt-1 md:mt-0">Developed By <span className="font-medium">Mayank (steeltroops_ai)</span></p>
         </div>
       </div>
     </footer>

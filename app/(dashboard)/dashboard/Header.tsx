@@ -1,11 +1,17 @@
-'use client'
+"use client";
 
-import { Bell, Mail, User, Search } from 'lucide-react'
-import { useState, useEffect, useRef } from 'react'
-import clsx from 'clsx'
+import { Bell, Mail, User, Search } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import clsx from "clsx";
 
 // A reusable component for icon buttons to keep the code clean and consistent.
-const IconWrapper = ({ children, label }: { children: React.ReactNode; label: string }) => (
+const IconWrapper = ({
+  children,
+  label,
+}: {
+  children: React.ReactNode;
+  label: string;
+}) => (
   <button
     type="button"
     aria-label={label}
@@ -13,27 +19,27 @@ const IconWrapper = ({ children, label }: { children: React.ReactNode; label: st
   >
     {children}
   </button>
-)
+);
 
 export default function DashboardHeader() {
-  const [isHovered, setIsHovered] = useState(false)
-  const [isExpanded, setIsExpanded] = useState(false)
-  const headerRef = useRef<HTMLElement>(null)
+  const [isHovered, setIsHovered] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
 
   // This effect manages the expand/collapse state with a delay to prevent flickering.
   useEffect(() => {
-    let timeoutId: ReturnType<typeof setTimeout>
+    let timeoutId: ReturnType<typeof setTimeout>;
     if (isHovered) {
-      setIsExpanded(true)
+      setIsExpanded(true);
     } else {
       timeoutId = setTimeout(() => {
-        if (headerRef.current && !headerRef.current.matches(':hover')) {
-          setIsExpanded(false)
+        if (headerRef.current && !headerRef.current.matches(":hover")) {
+          setIsExpanded(false);
         }
-      }, 300)
+      }, 300);
     }
-    return () => clearTimeout(timeoutId)
-  }, [isHovered])
+    return () => clearTimeout(timeoutId);
+  }, [isHovered]);
 
   return (
     <>
@@ -43,24 +49,24 @@ export default function DashboardHeader() {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={clsx(
-          'relative mx-auto mt-6 flex items-center justify-center rounded-full backdrop-blur-xl overflow-hidden',
-          'animate-gemini-flow',
-          'border border-white/10 shadow-[0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_2px_rgba(255,255,255,0.1)]',
-          'transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)]',
-          isHovered && 'shadow-[0_8px_24px_rgba(0,0,0,0.4)]'
+          "relative mx-auto mt-6 flex items-center justify-center rounded-full backdrop-blur-xl overflow-hidden",
+          "animate-gemini-flow",
+          "border border-white/10 shadow-[0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_2px_rgba(255,255,255,0.1)]",
+          "transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)]",
+          isHovered && "shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
         )}
         style={{
           // FIX: Reduced expanded width for a more compact look
-          width: isExpanded ? 'clamp(250px, 40vw, 500px)' : 120,
+          width: isExpanded ? "clamp(250px, 40vw, 500px)" : 120,
           // FIX: Decreased padding to reduce height
-          padding: '4px',
+          padding: "4px",
         }}
       >
         {/* FIX: Wrapper for all expanded content that fades out together. */}
         <div
           className={clsx(
-            'flex items-center justify-between w-full transition-opacity duration-300',
-            isExpanded ? 'opacity-100' : 'opacity-0'
+            "flex items-center justify-between w-full transition-opacity duration-300",
+            isExpanded ? "opacity-100" : "opacity-0"
           )}
         >
           {/* Search Section */}
@@ -70,8 +76,8 @@ export default function DashboardHeader() {
             </IconWrapper>
             <div
               className={clsx(
-                'transition-all duration-300 ease-in-out',
-                isExpanded ? 'w-full ml-2' : 'w-0 ml-0'
+                "transition-all duration-300 ease-in-out",
+                isExpanded ? "w-full ml-2" : "w-0 ml-0"
               )}
             >
               <input
@@ -100,9 +106,9 @@ export default function DashboardHeader() {
         {/* Collapsed State View - Fades in when the expanded view fades out. */}
         <div
           className={clsx(
-            'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-5 text-white/80 transition-opacity duration-300',
-            isExpanded ? 'opacity-0' : 'opacity-100',
-            'pointer-events-none'
+            "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-5 text-white/80 transition-opacity duration-300",
+            isExpanded ? "opacity-0" : "opacity-100",
+            "pointer-events-none"
           )}
         >
           <Search size={20} />
@@ -132,5 +138,5 @@ export default function DashboardHeader() {
         }
       `}</style>
     </>
-  )
+  );
 }

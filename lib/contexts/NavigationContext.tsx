@@ -23,6 +23,7 @@ export type PageType =
   | "text-editor"
   | "posters"
   | "cards"
+  | "certificates"
   | "media"
   | "fonts";
 
@@ -77,6 +78,7 @@ const initialState: NavigationState = {
     "text-editor": null,
     posters: null,
     cards: null,
+    certificates: null,
     media: null,
     fonts: null,
   },
@@ -91,6 +93,7 @@ const initialState: NavigationState = {
     "text-editor": 0,
     posters: 0,
     cards: 0,
+    certificates: 0,
     media: 0,
     fonts: 0,
   },
@@ -124,6 +127,7 @@ const pageToPath: Record<PageType, string> = {
   "text-editor": "/tools/text",
   posters: "/content/posters",
   cards: "/content/cards",
+  certificates: "/certificates",
   media: "/assets/media",
   fonts: "/assets/fonts",
 };
