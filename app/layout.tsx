@@ -69,31 +69,19 @@ export default function RootLayout({
           }}
         />
 
-        {/* Clear Service Workers - Temporary Fix */}
+        {/* Service Worker Registration - Simple Pass-Through */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
             if ('serviceWorker' in navigator) {
-              navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                  console.log('Unregistering service worker:', registration);
-                  registration.unregister();
-                }
-                console.log('All service workers unregistered');
-
-                // Clear all caches
-                if ('caches' in window) {
-                  caches.keys().then(function(cacheNames) {
-                    return Promise.all(
-                      cacheNames.map(function(cacheName) {
-                        console.log('Deleting cache:', cacheName);
-                        return caches.delete(cacheName);
-                      })
-                    );
-                  }).then(function() {
-                    console.log('All caches cleared');
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                  .then(function(registration) {
+                    console.log('SW registered: ', registration);
+                  })
+                  .catch(function(registrationError) {
+                    console.log('SW registration failed: ', registrationError);
                   });
-                }
               });
             }
           `,

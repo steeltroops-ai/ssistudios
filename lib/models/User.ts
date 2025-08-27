@@ -204,10 +204,14 @@ UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
 
   try {
+    console.log(`Hashing password for user: ${this.username}`);
     const bcrypt = require("bcryptjs");
-    this.password = await bcrypt.hash(this.password, 12);
+    const saltRounds = 12;
+    this.password = await bcrypt.hash(this.password, saltRounds);
+    console.log(`Password hashed successfully for user: ${this.username}`);
     next();
   } catch (error) {
+    console.error("Password hashing error:", error);
     next(error as Error);
   }
 });
@@ -216,8 +220,16 @@ UserSchema.pre("save", async function (next) {
 UserSchema.methods.comparePassword = async function (
   candidatePassword: string
 ): Promise<boolean> {
-  const bcrypt = require("bcryptjs");
-  return bcrypt.compare(candidatePassword, this.password);
+  try {
+    console.log(`Comparing password for user: ${this.username}`);
+    const bcrypt = require("bcryptjs");
+    const result = await bcrypt.compare(candidatePassword, this.password);
+    console.log(`Password comparison result for ${this.username}: ${result}`);
+    return result;
+  } catch (error) {
+    console.error("Password comparison error:", error);
+    return false;
+  }
 };
 
 // Method to increment login attempts

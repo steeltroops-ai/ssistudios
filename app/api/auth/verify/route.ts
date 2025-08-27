@@ -8,9 +8,17 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now();
 
   try {
+    // Debug: Check if cookies are present
+    const accessToken = request.cookies.get("access_token")?.value;
+    const refreshToken = request.cookies.get("refresh_token")?.value;
+    console.log(
+      `Verify endpoint - Access token present: ${!!accessToken}, Refresh token present: ${!!refreshToken}`
+    );
+
     // Verify the JWT token
     const tokenPayload = verifyAuthToken(request);
-    
+    console.log(`Token payload:`, tokenPayload);
+
     if (!tokenPayload) {
       return NextResponse.json(
         {

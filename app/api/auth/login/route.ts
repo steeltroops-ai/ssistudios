@@ -91,6 +91,8 @@ export async function POST(request: NextRequest) {
     }: LoginRequest = body;
     const identifier = username.toLowerCase().trim();
 
+    console.log(`Login attempt for ${identifier}, rememberMe: ${rememberMe}`);
+
     // Connect to database
     await dbConnect();
 
@@ -133,14 +135,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify password
+    // Verify password - use direct bcrypt comparison for both user types
     let isPasswordValid = false;
-    if (isAdmin) {
-      // Use existing admin password verification
+    try {
       isPasswordValid = await bcrypt.compare(password, user.password);
-    } else {
-      // Use user model method
-      isPasswordValid = await user.comparePassword(password);
+      console.log(
+        `Password verification for ${identifier}: ${isPasswordValid}`
+      );
+    } catch (error) {
+      console.error("Password comparison error:", error);
+      isPasswordValid = false;
     }
 
     if (!isPasswordValid) {
@@ -243,6 +247,11 @@ export async function POST(request: NextRequest) {
 
     // Set secure HTTP-only cookies
     const cookieOptions = getSecureCookieOptions(rememberMe);
+    console.log(`Setting cookies with options:`, cookieOptions);
+    console.log(
+      `Access token length: ${accessToken.length}, Refresh token length: ${refreshToken.length}`
+    );
+
     response.cookies.set("access_token", accessToken, cookieOptions);
     response.cookies.set("refresh_token", refreshToken, {
       ...cookieOptions,
