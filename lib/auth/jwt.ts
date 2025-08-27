@@ -1,5 +1,6 @@
 import jwt, { SignOptions } from "jsonwebtoken";
 import { NextRequest } from "next/server";
+import { randomBytes } from "crypto";
 
 // JWT Configuration
 const JWT_SECRET =
@@ -28,18 +29,22 @@ export interface RefreshTokenPayload {
  * Generate JWT access token
  */
 export function generateAccessToken(
-  payload: Omit<TokenPayload, "iat" | "exp">
+  payload: Omit<TokenPayload, "iat" | "exp">,
+  rememberMe: boolean = false
 ): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "24h" });
+  const expiresIn = rememberMe ? "30d" : "24h"; // 30 days if remember me, otherwise 24 hours
+  return jwt.sign(payload, JWT_SECRET, { expiresIn });
 }
 
 /**
  * Generate JWT refresh token
  */
 export function generateRefreshToken(
-  payload: Omit<RefreshTokenPayload, "iat" | "exp">
+  payload: Omit<RefreshTokenPayload, "iat" | "exp">,
+  rememberMe: boolean = false
 ): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  const expiresIn = rememberMe ? "30d" : "7d"; // 30 days if remember me, otherwise 7 days
+  return jwt.sign(payload, JWT_SECRET, { expiresIn });
 }
 
 /**
@@ -47,10 +52,7 @@ export function generateRefreshToken(
  */
 export function verifyAccessToken(token: string): TokenPayload | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET, {
-      issuer: "ssi-studios",
-      audience: "ssi-studios-users",
-    }) as TokenPayload;
+    const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
     return decoded;
   } catch (error) {
     console.error("JWT verification failed:", error);
@@ -63,10 +65,7 @@ export function verifyAccessToken(token: string): TokenPayload | null {
  */
 export function verifyRefreshToken(token: string): RefreshTokenPayload | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET, {
-      issuer: "ssi-studios",
-      audience: "ssi-studios-refresh",
-    }) as RefreshTokenPayload;
+    const decoded = jwt.verify(token, JWT_SECRET) as RefreshTokenPayload;
     return decoded;
   } catch (error) {
     console.error("Refresh token verification failed:", error);
@@ -117,12 +116,19 @@ export function verifyAuthToken(request: NextRequest): TokenPayload | null {
 /**
  * Generate secure cookie options
  */
-export function getSecureCookieOptions(maxAge?: number) {
+export function getSecureCookieOptions(
+  rememberMe: boolean = false,
+  maxAge?: number
+) {
+  const defaultMaxAge = rememberMe
+    ? 30 * 24 * 60 * 60 * 1000 // 30 days for remember me
+    : 24 * 60 * 60 * 1000; // 24 hours default
+
   return {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict" as const,
-    maxAge: maxAge || 24 * 60 * 60 * 1000, // 24 hours default
+    maxAge: maxAge || defaultMaxAge,
     path: "/",
   };
 }
@@ -172,4 +178,41 @@ export function createAuthResponse(user: any, response: Response) {
       type: user.type || (user.isAdmin ? "admin" : "user"),
     },
   };
+}
+
+/**
+ * Generate a unique session ID
+ */
+export function generateSessionId(): string {
+  return randomBytes(32).toString("hex");
+}
+
+/**
+ * Extract device info from user agent
+ */
+export function getDeviceInfo(userAgent: string): string {
+  // Simple device detection - can be enhanced with a proper library
+  if (userAgent.includes("Mobile")) {
+    if (userAgent.includes("iPhone")) return "iPhone";
+    if (userAgent.includes("Android")) return "Android Mobile";
+    return "Mobile Device";
+  }
+
+  if (userAgent.includes("iPad")) return "iPad";
+  if (userAgent.includes("Macintosh")) return "Mac";
+  if (userAgent.includes("Windows")) return "Windows PC";
+  if (userAgent.includes("Linux")) return "Linux PC";
+
+  return "Unknown Device";
+}
+
+/**
+ * Get client IP address from request
+ */
+export function getClientIP(request: NextRequest): string {
+  return (
+    request.headers.get("x-forwarded-for") ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
 }

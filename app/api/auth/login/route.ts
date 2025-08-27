@@ -4,6 +4,14 @@ import { User } from "@/lib/models/User";
 import { Member } from "@/lib/models/Employee"; // Existing admin model
 import bcrypt from "bcryptjs";
 import rateLimit from "@/lib/utils/rateLimit";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  getSecureCookieOptions,
+  generateSessionId,
+  getDeviceInfo,
+  getClientIP,
+} from "@/lib/auth/jwt";
 
 // Rate limiting configuration
 const limiter = rateLimit({
@@ -16,6 +24,7 @@ interface LoginRequest {
   username: string;
   password: string;
   userType?: "user" | "admin"; // Optional: specify user type
+  rememberMe?: boolean; // Optional: extended session
 }
 
 // Validation helper
@@ -74,7 +83,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { username, password, userType }: LoginRequest = body;
+    const {
+      username,
+      password,
+      userType,
+      rememberMe = false,
+    }: LoginRequest = body;
     const identifier = username.toLowerCase().trim();
 
     // Connect to database
@@ -149,10 +163,29 @@ export async function POST(request: NextRequest) {
       await user.resetLoginAttempts();
     }
 
-    // Update last login time
+    // Update last login time and session management
     if (!isAdmin) {
       user.lastLoginAt = new Date();
-      await user.save();
+      user.rememberMe = rememberMe;
+
+      // Create session data
+      const sessionId = generateSessionId();
+      const userAgent = request.headers.get("user-agent") || "Unknown";
+      const deviceInfo = getDeviceInfo(userAgent);
+      const ipAddress = getClientIP(request);
+      const expiresAt = new Date(
+        Date.now() +
+          (rememberMe ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000)
+      );
+
+      // Add session to user
+      await user.addSession({
+        sessionId,
+        deviceInfo,
+        ipAddress,
+        userAgent,
+        expiresAt,
+      });
     }
 
     // Prepare user response
@@ -177,15 +210,44 @@ export async function POST(request: NextRequest) {
           type: "user",
         };
 
-    // Set secure headers
+    // Generate JWT tokens
+    const accessToken = generateAccessToken(
+      {
+        userId: user._id.toString(),
+        username: user.username,
+        email: user.email,
+        isAdmin: isAdmin,
+        type: isAdmin ? "admin" : "user",
+      },
+      rememberMe
+    );
+
+    const refreshToken = generateRefreshToken(
+      {
+        userId: user._id.toString(),
+        tokenVersion: user.tokenVersion || 0,
+      },
+      rememberMe
+    );
+
+    // Create response with user data
     const response = NextResponse.json(
       {
         message: "Login successful",
         user: userResponse,
+        accessToken, // Include token in response for client-side access
         _meta: { responseTime: `${Date.now() - startTime}ms` },
       },
       { status: 200 }
     );
+
+    // Set secure HTTP-only cookies
+    const cookieOptions = getSecureCookieOptions(rememberMe);
+    response.cookies.set("access_token", accessToken, cookieOptions);
+    response.cookies.set("refresh_token", refreshToken, {
+      ...cookieOptions,
+      maxAge: rememberMe ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000, // 30 days if remember me, otherwise 7 days
+    });
 
     // Security headers
     response.headers.set("X-Content-Type-Options", "nosniff");

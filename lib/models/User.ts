@@ -15,6 +15,16 @@ export interface IUser extends Document {
   lastLoginAt?: Date;
   loginAttempts: number;
   lockUntil?: Date;
+  tokenVersion: number; // For refresh token invalidation
+  rememberMe: boolean; // For extended session preference
+  activeSessions: {
+    sessionId: string;
+    deviceInfo: string;
+    ipAddress: string;
+    userAgent: string;
+    lastActivity: Date;
+    expiresAt: Date;
+  }[];
   oauthProviders: {
     google?: {
       id: string;
@@ -103,6 +113,42 @@ const UserSchema: Schema<IUser> = new Schema(
       type: Date,
       select: false,
     },
+    tokenVersion: {
+      type: Number,
+      default: 0,
+    },
+    rememberMe: {
+      type: Boolean,
+      default: false,
+    },
+    activeSessions: [
+      {
+        sessionId: {
+          type: String,
+          required: true,
+        },
+        deviceInfo: {
+          type: String,
+          required: true,
+        },
+        ipAddress: {
+          type: String,
+          required: true,
+        },
+        userAgent: {
+          type: String,
+          required: true,
+        },
+        lastActivity: {
+          type: Date,
+          default: Date.now,
+        },
+        expiresAt: {
+          type: Date,
+          required: true,
+        },
+      },
+    ],
     oauthProviders: {
       google: {
         id: String,
@@ -132,13 +178,12 @@ const UserSchema: Schema<IUser> = new Schema(
   }
 );
 
-// Indexes for performance and security
-UserSchema.index({ email: 1 });
-UserSchema.index({ username: 1 });
+// Indexes for performance and security (email and username already indexed via unique: true)
 UserSchema.index({ "oauthProviders.google.id": 1 });
 UserSchema.index({ emailVerificationToken: 1 });
 UserSchema.index({ passwordResetToken: 1 });
 UserSchema.index({ lockUntil: 1 });
+UserSchema.index({ lastLoginAt: 1 }); // For session management queries
 
 // Virtual for full name
 UserSchema.virtual("fullName").get(function () {
@@ -200,6 +245,64 @@ UserSchema.methods.resetLoginAttempts = function () {
   return this.updateOne({
     $unset: { loginAttempts: 1, lockUntil: 1 },
   });
+};
+
+// Method to add a new session
+UserSchema.methods.addSession = function (sessionData: {
+  sessionId: string;
+  deviceInfo: string;
+  ipAddress: string;
+  userAgent: string;
+  expiresAt: Date;
+}) {
+  // Remove expired sessions first
+  this.activeSessions = this.activeSessions.filter(
+    (session: any) => session.expiresAt > new Date()
+  );
+
+  // Add new session
+  this.activeSessions.push({
+    ...sessionData,
+    lastActivity: new Date(),
+  });
+
+  return this.save();
+};
+
+// Method to update session activity
+UserSchema.methods.updateSessionActivity = function (sessionId: string) {
+  const session = this.activeSessions.find(
+    (s: any) => s.sessionId === sessionId
+  );
+  if (session) {
+    session.lastActivity = new Date();
+    return this.save();
+  }
+  return Promise.resolve();
+};
+
+// Method to remove a session
+UserSchema.methods.removeSession = function (sessionId: string) {
+  this.activeSessions = this.activeSessions.filter(
+    (session: any) => session.sessionId !== sessionId
+  );
+  return this.save();
+};
+
+// Method to clear all sessions (for logout all devices)
+UserSchema.methods.clearAllSessions = function () {
+  this.activeSessions = [];
+  this.tokenVersion += 1; // Invalidate all refresh tokens
+  return this.save();
+};
+
+// Method to clean expired sessions
+UserSchema.methods.cleanExpiredSessions = function () {
+  const now = new Date();
+  this.activeSessions = this.activeSessions.filter(
+    (session: any) => session.expiresAt > now
+  );
+  return this.save();
 };
 
 // Export the User model

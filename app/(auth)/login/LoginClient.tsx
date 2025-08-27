@@ -47,6 +47,7 @@ export default function LoginClient() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const usernameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -230,8 +231,18 @@ export default function LoginClient() {
           authMode === "signin" ? "/api/auth/login" : "/api/auth/signup";
         const requestBody =
           authMode === "signin"
-            ? { username: username.trim(), password, userType: "admin" } // Try admin first, then user
-            : { username: username.trim(), email: email.trim(), password };
+            ? {
+                username: username.trim(),
+                password,
+                userType: "admin",
+                rememberMe,
+              } // Try admin first, then user
+            : {
+                username: username.trim(),
+                email: email.trim(),
+                password,
+                rememberMe,
+              };
 
         const res = await fetch(endpoint, {
           method: "POST",
@@ -613,6 +624,45 @@ export default function LoginClient() {
                       </div>
                     )}
                 </div>
+              </div>
+            )}
+
+            {/* Remember Me Checkbox (only for sign in) */}
+            {authMode === "signin" && (
+              <div className="flex items-center space-x-3 mb-4">
+                <label className="flex items-center cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <div
+                    className={`w-4 h-4 rounded border-2 transition-all duration-200 flex items-center justify-center
+                    ${
+                      rememberMe
+                        ? "bg-blue-500 border-blue-500"
+                        : "border-white/30 group-hover:border-white/50"
+                    }`}
+                  >
+                    {rememberMe && (
+                      <svg
+                        className="w-2.5 h-2.5 text-white"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  <span className="ml-3 text-sm text-white/70 group-hover:text-white/90 transition-colors">
+                    Remember me for 30 days
+                  </span>
+                </label>
               </div>
             )}
 

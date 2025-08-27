@@ -3,6 +3,14 @@ import dbConnect from "@/lib/database/dbconnect";
 import { User } from "@/lib/models/User";
 import bcrypt from "bcryptjs";
 import rateLimit from "@/lib/utils/rateLimit";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  getSecureCookieOptions,
+  generateSessionId,
+  getDeviceInfo,
+  getClientIP,
+} from "@/lib/auth/jwt";
 
 // Rate limiting configuration
 const limiter = rateLimit({
@@ -15,6 +23,7 @@ interface SignupRequest {
   username: string;
   email: string;
   password: string;
+  rememberMe?: boolean; // Optional: extended session
 }
 
 // Validation helper
@@ -94,7 +103,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { username, email, password }: SignupRequest = body;
+    const {
+      username,
+      email,
+      password,
+      rememberMe = false,
+    }: SignupRequest = body;
 
     // Connect to database
     await dbConnect();
@@ -126,6 +140,7 @@ export async function POST(request: NextRequest) {
       username: username.toLowerCase().trim(),
       email: email.toLowerCase().trim(),
       password, // Will be hashed by pre-save middleware
+      rememberMe: rememberMe,
       preferences: {
         theme: "light",
         notifications: true,
@@ -136,6 +151,24 @@ export async function POST(request: NextRequest) {
     // Save user to database
     await newUser.save();
 
+    // Create session data for immediate login
+    const sessionId = generateSessionId();
+    const userAgent = request.headers.get("user-agent") || "Unknown";
+    const deviceInfo = getDeviceInfo(userAgent);
+    const ipAddress = getClientIP(request);
+    const expiresAt = new Date(
+      Date.now() + (rememberMe ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000)
+    );
+
+    // Add session to user
+    await newUser.addSession({
+      sessionId,
+      deviceInfo,
+      ipAddress,
+      userAgent,
+      expiresAt,
+    });
+
     // Remove password from response
     const userResponse = {
       id: newUser._id,
@@ -145,17 +178,48 @@ export async function POST(request: NextRequest) {
       isEmailVerified: newUser.isEmailVerified,
       preferences: newUser.preferences,
       createdAt: newUser.createdAt,
+      isAdmin: false,
+      type: "user",
     };
 
-    // Set secure headers
+    // Generate JWT tokens for immediate login after signup
+    const accessToken = generateAccessToken(
+      {
+        userId: newUser._id.toString(),
+        username: newUser.username,
+        email: newUser.email,
+        isAdmin: false,
+        type: "user",
+      },
+      rememberMe
+    );
+
+    const refreshToken = generateRefreshToken(
+      {
+        userId: newUser._id.toString(),
+        tokenVersion: 0,
+      },
+      rememberMe
+    );
+
+    // Create response with user data and token
     const response = NextResponse.json(
       {
         message: "Account created successfully",
         user: userResponse,
+        accessToken, // Include token in response for client-side access
         _meta: { responseTime: `${Date.now() - startTime}ms` },
       },
       { status: 201 }
     );
+
+    // Set secure HTTP-only cookies
+    const cookieOptions = getSecureCookieOptions(rememberMe);
+    response.cookies.set("access_token", accessToken, cookieOptions);
+    response.cookies.set("refresh_token", refreshToken, {
+      ...cookieOptions,
+      maxAge: rememberMe ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000, // 30 days if remember me, otherwise 7 days
+    });
 
     // Security headers
     response.headers.set("X-Content-Type-Options", "nosniff");

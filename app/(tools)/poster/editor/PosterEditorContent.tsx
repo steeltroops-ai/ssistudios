@@ -1,13 +1,151 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Edit, Save, Download, Undo, Redo, Layers } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Edit,
+  Save,
+  Download,
+  Undo,
+  Redo,
+  Layers,
+  Type,
+  Square,
+  Image,
+  Move,
+  RotateCcw,
+  Palette,
+  History,
+  Settings,
+  Eye,
+  EyeOff,
+  ChevronDown,
+  Grid3X3,
+  Maximize2,
+  Minimize2,
+  Crop,
+  Filter,
+  Zap,
+  MousePointer,
+  Brush,
+  Eraser,
+  PaintBucket,
+  Scissors,
+  Copy,
+  Trash2,
+} from "lucide-react";
 import {
   PageBackground,
   GlassBackground,
 } from "@/components/shared/ThemeBackground";
+import DashboardHeader from "@/app/(dashboard)/dashboard/Header";
+
+// Local Component Definitions (no external imports)
+
+// Collapsible Section Component
+const CollapsibleSection = ({
+  title,
+  children,
+  defaultOpen = true,
+}: {
+  title: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) => {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <div className="mb-6">
+      <div
+        className="flex items-center justify-between p-2 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <h4 className="text-md font-semibold text-gray-700">{title}</h4>
+        <motion.div
+          animate={{ rotate: isOpen ? 0 : -90 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronDown className="w-4 h-4 text-gray-500" />
+        </motion.div>
+      </div>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="pt-3">{children}</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// Enhanced Tool Button Component
+const ToolButton = ({
+  icon: Icon,
+  label,
+  active = false,
+  onClick,
+  className = "",
+}: {
+  icon: any;
+  label: string;
+  active?: boolean;
+  onClick?: () => void;
+  className?: string;
+}) => (
+  <motion.button
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+    className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 text-left ${
+      active
+        ? "bg-blue-100 border border-blue-300 text-blue-700"
+        : "hover:bg-gray-100 text-gray-700"
+    } ${className}`}
+    onClick={onClick}
+  >
+    <Icon className="w-5 h-5" />
+    <span className="font-medium">{label}</span>
+  </motion.button>
+);
+
+// Grid Tool Button Component
+const GridToolButton = ({
+  icon: Icon,
+  label,
+  active = false,
+  onClick,
+  description,
+}: {
+  icon: any;
+  label: string;
+  active?: boolean;
+  onClick?: () => void;
+  description?: string;
+}) => (
+  <motion.button
+    whileHover={{ scale: 1.02 }}
+    whileTap={{ scale: 0.98 }}
+    className={`h-16 w-full flex flex-col items-center justify-center gap-1 rounded-lg border-2 transition-all duration-200 ${
+      active
+        ? "bg-blue-100 border-blue-300 text-blue-700"
+        : "bg-white border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-700"
+    }`}
+    onClick={onClick}
+    title={description}
+  >
+    <Icon className="w-5 h-5" />
+    <span className="text-xs font-medium">{label}</span>
+  </motion.button>
+);
 
 export default function PosterEditorContent() {
+  const [selectedTool, setSelectedTool] = useState("select");
   return (
     <PageBackground>
       <motion.div
@@ -22,10 +160,18 @@ export default function PosterEditorContent() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="flex items-center justify-between mb-6"
+          className="grid grid-cols-3 items-center mb-6"
         >
+          {/* Left - Title */}
           <h1 className="text-2xl font-bold text-gray-800">Poster Editor</h1>
-          <div className="flex items-center gap-2">
+
+          {/* Center - Dashboard Header */}
+          <div className="flex justify-center">
+            <DashboardHeader />
+          </div>
+
+          {/* Right - Buttons */}
+          <div className="flex justify-end items-center gap-2">
             <button className="p-2 rounded-lg bg-white/80 backdrop-blur-sm shadow-md hover:shadow-lg transition-shadow">
               <Undo className="w-5 h-5 text-gray-600" />
             </button>
@@ -45,46 +191,131 @@ export default function PosterEditorContent() {
 
         {/* Editor Layout */}
         <div className="flex gap-4 h-[calc(100vh-200px)]">
-          {/* Tools Panel */}
+          {/* Enhanced Tools Panel */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
             className="w-64"
           >
-            <GlassBackground className="p-4 shadow-lg border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Tools
-              </h3>
-              <div className="space-y-2">
-                <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors text-left">
-                  <Edit className="w-5 h-5 text-gray-600" />
-                  <span className="text-gray-700">Text Tool</span>
-                </button>
-                <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors text-left">
-                  <Layers className="w-5 h-5 text-gray-600" />
-                  <span className="text-gray-700">Shapes</span>
-                </button>
-                <button className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-100 transition-colors text-left">
-                  <Download className="w-5 h-5 text-gray-600" />
-                  <span className="text-gray-700">Images</span>
-                </button>
+            <GlassBackground className="p-4 shadow-lg border border-gray-200 h-full overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Tools & Actions
+                </h3>
+                <Settings className="w-4 h-4 text-gray-500 cursor-pointer hover:text-gray-700" />
               </div>
 
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 mt-8">
-                Layers
-              </h3>
-              <div className="space-y-2">
-                <div className="p-2 rounded bg-blue-100 border border-blue-200">
-                  <span className="text-sm text-gray-700">Background</span>
+              {/* Primary Design Tools */}
+              <CollapsibleSection title="Design Tools" defaultOpen={true}>
+                <div className="grid grid-cols-2 gap-2">
+                  <GridToolButton
+                    icon={MousePointer}
+                    label="Select"
+                    active={selectedTool === "select"}
+                    onClick={() => setSelectedTool("select")}
+                    description="Select and move objects"
+                  />
+                  <GridToolButton
+                    icon={Type}
+                    label="Text"
+                    active={selectedTool === "text"}
+                    onClick={() => setSelectedTool("text")}
+                    description="Add text elements"
+                  />
+                  <GridToolButton
+                    icon={Square}
+                    label="Shape"
+                    active={selectedTool === "shape"}
+                    onClick={() => setSelectedTool("shape")}
+                    description="Draw shapes"
+                  />
+                  <GridToolButton
+                    icon={Image}
+                    label="Image"
+                    active={selectedTool === "image"}
+                    onClick={() => setSelectedTool("image")}
+                    description="Insert images"
+                  />
+                  <GridToolButton
+                    icon={Brush}
+                    label="Brush"
+                    active={selectedTool === "brush"}
+                    onClick={() => setSelectedTool("brush")}
+                    description="Paint and draw"
+                  />
+                  <GridToolButton
+                    icon={Eraser}
+                    label="Eraser"
+                    active={selectedTool === "eraser"}
+                    onClick={() => setSelectedTool("eraser")}
+                    description="Erase elements"
+                  />
                 </div>
-                <div className="p-2 rounded bg-gray-100 border border-gray-200">
-                  <span className="text-sm text-gray-700">Text Layer 1</span>
+              </CollapsibleSection>
+
+              {/* Quick Actions */}
+              <CollapsibleSection title="Quick Actions" defaultOpen={true}>
+                <div className="space-y-2">
+                  <ToolButton icon={Move} label="Move to Front" />
+                  <ToolButton icon={RotateCcw} label="Rotate 90°" />
+                  <ToolButton icon={Palette} label="Color Picker" />
+                  <ToolButton icon={Copy} label="Duplicate" />
+                  <ToolButton icon={Scissors} label="Cut" />
+                  <ToolButton icon={Trash2} label="Delete" />
                 </div>
-                <div className="p-2 rounded bg-gray-100 border border-gray-200">
-                  <span className="text-sm text-gray-700">Logo</span>
+              </CollapsibleSection>
+
+              {/* Layers */}
+              <CollapsibleSection title="Layers" defaultOpen={false}>
+                <div className="space-y-2">
+                  {["Background", "Text Layer", "Shape 1", "Image"].map(
+                    (layer, index) => (
+                      <div
+                        key={layer}
+                        className={`flex items-center gap-3 p-2 rounded-lg transition-all duration-200 cursor-pointer ${
+                          index === 1
+                            ? "bg-blue-100 border border-blue-200"
+                            : "bg-gray-50 hover:bg-gray-100"
+                        }`}
+                      >
+                        <Layers className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-700 flex-1">
+                          {layer}
+                        </span>
+                        <div className="flex gap-1">
+                          <Eye className="w-3 h-3 text-gray-400 cursor-pointer hover:text-gray-600" />
+                          <Settings className="w-3 h-3 text-gray-400 cursor-pointer hover:text-gray-600" />
+                        </div>
+                      </div>
+                    )
+                  )}
                 </div>
-              </div>
+              </CollapsibleSection>
+
+              {/* History */}
+              <CollapsibleSection title="History" defaultOpen={false}>
+                <div className="space-y-2">
+                  {[
+                    "Initial State",
+                    "Add Text",
+                    "Change Color",
+                    "Resize Shape",
+                  ].map((action, index) => (
+                    <div
+                      key={action}
+                      className={`flex items-center gap-3 p-2 rounded-lg transition-all duration-200 cursor-pointer text-sm ${
+                        index === 3
+                          ? "bg-blue-100 border border-blue-200"
+                          : "bg-gray-50 hover:bg-gray-100"
+                      }`}
+                    >
+                      <History className="w-4 h-4 text-gray-500" />
+                      <span className="text-gray-700">{action}</span>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleSection>
             </GlassBackground>
           </motion.div>
 
@@ -106,48 +337,228 @@ export default function PosterEditorContent() {
             </div>
           </motion.div>
 
-          {/* Properties Panel */}
+          {/* Enhanced Properties Panel */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
-            className="w-64 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-4"
+            className="w-64 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-4 h-full overflow-y-auto"
           >
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Properties
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Width
-                </label>
-                <input
-                  type="number"
-                  defaultValue="800"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Height
-                </label>
-                <input
-                  type="number"
-                  defaultValue="600"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Background Color
-                </label>
-                <input
-                  type="color"
-                  defaultValue="#ffffff"
-                  className="w-full h-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Properties
+              </h3>
+              <div className="flex gap-2">
+                <Eye className="w-4 h-4 text-gray-500 cursor-pointer hover:text-gray-700" />
+                <Settings className="w-4 h-4 text-gray-500 cursor-pointer hover:text-gray-700" />
               </div>
             </div>
+
+            {/* Position & Size */}
+            <CollapsibleSection title="Position & Size" defaultOpen={true}>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    X
+                  </label>
+                  <input
+                    type="number"
+                    defaultValue="100"
+                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-center"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Y
+                  </label>
+                  <input
+                    type="number"
+                    defaultValue="100"
+                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-center"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Width
+                  </label>
+                  <input
+                    type="number"
+                    defaultValue="800"
+                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-center"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Height
+                  </label>
+                  <input
+                    type="number"
+                    defaultValue="600"
+                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-center"
+                  />
+                </div>
+              </div>
+            </CollapsibleSection>
+
+            {/* Appearance */}
+            <CollapsibleSection title="Appearance" defaultOpen={true}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-2">
+                    Fill Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-8 h-8 rounded border-2 border-gray-300 cursor-pointer"
+                      style={{ backgroundColor: "#3B82F6" }}
+                    />
+                    <input
+                      type="text"
+                      defaultValue="#3B82F6"
+                      className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-2">
+                    Stroke Color
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-8 h-8 rounded border-2 border-gray-300 cursor-pointer"
+                      style={{ backgroundColor: "#1E40AF" }}
+                    />
+                    <input
+                      type="text"
+                      defaultValue="#1E40AF"
+                      className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Opacity
+                  </label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    defaultValue="100"
+                    className="w-full"
+                  />
+                  <div className="text-xs text-gray-500 text-center mt-1">
+                    100%
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Blend Mode
+                  </label>
+                  <select className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <option value="normal">Normal</option>
+                    <option value="multiply">Multiply</option>
+                    <option value="screen">Screen</option>
+                    <option value="overlay">Overlay</option>
+                    <option value="darken">Darken</option>
+                    <option value="lighten">Lighten</option>
+                  </select>
+                </div>
+              </div>
+            </CollapsibleSection>
+
+            {/* Typography */}
+            <CollapsibleSection title="Typography" defaultOpen={false}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Font Family
+                  </label>
+                  <select className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <option value="Inter">Inter</option>
+                    <option value="Roboto">Roboto</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Helvetica">Helvetica</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Font Size
+                  </label>
+                  <input
+                    type="number"
+                    defaultValue="16"
+                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-center"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Font Weight
+                  </label>
+                  <select className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <option value="300">Light</option>
+                    <option value="400">Regular</option>
+                    <option value="500">Medium</option>
+                    <option value="600">Semibold</option>
+                    <option value="700">Bold</option>
+                    <option value="800">Extra Bold</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Text Align
+                  </label>
+                  <div className="flex gap-1">
+                    <button className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50">
+                      Left
+                    </button>
+                    <button className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50">
+                      Center
+                    </button>
+                    <button className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50">
+                      Right
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </CollapsibleSection>
+
+            {/* Canvas Settings */}
+            <CollapsibleSection title="Canvas Settings" defaultOpen={false}>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-700">Show Grid</span>
+                  <Grid3X3 className="w-4 h-4 text-gray-500 cursor-pointer hover:text-gray-700" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-700">Snap to Grid</span>
+                  <input type="checkbox" className="rounded" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-700">Show Rulers</span>
+                  <input type="checkbox" className="rounded" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Zoom
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <Minimize2 className="w-4 h-4 text-gray-500 cursor-pointer hover:text-gray-700" />
+                    <input
+                      type="range"
+                      min="10"
+                      max="500"
+                      defaultValue="100"
+                      className="flex-1"
+                    />
+                    <Maximize2 className="w-4 h-4 text-gray-500 cursor-pointer hover:text-gray-700" />
+                  </div>
+                  <div className="text-xs text-gray-500 text-center mt-1">
+                    100%
+                  </div>
+                </div>
+              </div>
+            </CollapsibleSection>
           </motion.div>
         </div>
       </motion.div>

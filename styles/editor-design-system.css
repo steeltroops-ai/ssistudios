@@ -1,0 +1,317 @@
+/* SSI Studios - Editor Design System */
+/* Apple-Inspired OKLCH Color System & Typography */
+
+:root {
+  /* ===== OKLCH COLOR SYSTEM ===== */
+  
+  /* Background System */
+  --editor-bg-primary: oklch(0.12 0 0);        /* Deep canvas background */
+  --editor-bg-secondary: oklch(0.15 0 0);      /* Panel backgrounds */
+  --editor-bg-tertiary: oklch(0.18 0 0);       /* Elevated surfaces */
+  --editor-bg-canvas: oklch(0.98 0 0);         /* Canvas/artboard */
+  
+  /* Interactive Elements */
+  --editor-accent-primary: oklch(0.55 0.16 240);   /* Primary blue */
+  --editor-accent-secondary: oklch(0.65 0.14 280); /* Purple accent */
+  --editor-accent-success: oklch(0.6 0.15 140);    /* Success green */
+  --editor-accent-warning: oklch(0.7 0.15 60);     /* Warning amber */
+  --editor-accent-danger: oklch(0.6 0.18 20);      /* Danger red */
+  
+  /* Text Hierarchy */
+  --editor-text-primary: oklch(0.95 0 0);      /* Primary text */
+  --editor-text-secondary: oklch(0.7 0 0);     /* Secondary text */
+  --editor-text-tertiary: oklch(0.5 0 0);      /* Tertiary text */
+  --editor-text-inverse: oklch(0.15 0 0);      /* Text on light */
+  
+  /* Tool States */
+  --editor-tool-active: oklch(0.55 0.16 240);      /* Active tool */
+  --editor-tool-hover: oklch(0.6 0.18 240);        /* Tool hover */
+  --editor-tool-inactive: oklch(0.4 0 0);          /* Inactive tool */
+  
+  /* Borders & Dividers */
+  --editor-border-primary: oklch(0.25 0 0);        /* Primary borders */
+  --editor-border-secondary: oklch(0.2 0 0);       /* Secondary borders */
+  --editor-border-focus: oklch(0.55 0.16 240);     /* Focus borders */
+  
+  /* ===== FIBONACCI-BASED SPACING SYSTEM ===== */
+  --space-micro: 4px;    /* Micro elements */
+  --space-xs: 8px;       /* Small spacing */
+  --space-sm: 13px;      /* Medium spacing */
+  --space-md: 21px;      /* Large spacing */
+  --space-lg: 34px;      /* Section spacing */
+  --space-xl: 55px;      /* Major sections */
+  --space-2xl: 89px;     /* Page sections */
+}
+
+/* ===== THEME ADAPTATIONS ===== */
+
+/* Light Theme Overrides */
+[data-theme="light"] {
+  --editor-bg-primary: oklch(0.98 0 0);
+  --editor-bg-secondary: oklch(0.95 0 0);
+  --editor-bg-tertiary: oklch(0.92 0 0);
+  --editor-bg-canvas: oklch(0.12 0 0);
+  --editor-text-primary: oklch(0.15 0 0);
+  --editor-text-secondary: oklch(0.4 0 0);
+  --editor-text-tertiary: oklch(0.6 0 0);
+  --editor-text-inverse: oklch(0.95 0 0);
+}
+
+/* Flower Theme Overrides */
+[data-theme="flower"] {
+  --editor-accent-primary: oklch(0.6 0.15 320);    /* Magenta */
+  --editor-accent-secondary: oklch(0.65 0.12 280); /* Purple */
+  --editor-bg-secondary: oklch(0.15 0.02 320);     /* Subtle magenta tint */
+  --editor-tool-active: oklch(0.6 0.15 320);
+  --editor-tool-hover: oklch(0.65 0.18 320);
+  --editor-border-focus: oklch(0.6 0.15 320);
+}
+
+/* ===== APPLE-INSPIRED TYPOGRAPHY SYSTEM ===== */
+
+.editor-title {
+  font-size: 1.75rem;    /* 28px */
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--editor-text-primary);
+}
+
+.panel-title {
+  font-size: 1.125rem;   /* 18px */
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--editor-text-primary);
+}
+
+.tool-label {
+  font-size: 0.875rem;   /* 14px */
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--editor-text-secondary);
+}
+
+.property-label {
+  font-size: 0.75rem;    /* 12px */
+  font-weight: 400;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--editor-text-tertiary);
+}
+
+/* ===== SEMANTIC COLOR CLASSES ===== */
+
+/* Tool Categories */
+.tool-select { color: var(--editor-accent-primary); }
+.tool-text { color: var(--editor-accent-secondary); }
+.tool-shape { color: var(--editor-accent-success); }
+.tool-image { color: var(--editor-accent-warning); }
+
+/* State Indicators */
+.state-active { 
+  background: var(--editor-tool-active);
+  color: white;
+}
+.state-hover { 
+  background: var(--editor-tool-hover);
+  color: white;
+}
+.state-disabled { 
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Feedback Colors */
+.feedback-success { color: var(--editor-accent-success); }
+.feedback-warning { color: var(--editor-accent-warning); }
+.feedback-error { color: var(--editor-accent-danger); }
+
+/* ===== GLASS PANEL SYSTEM ===== */
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+}
+
+.glass-panel:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.glass-sidebar {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-button {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.2s ease;
+}
+
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.02);
+}
+
+.glass-button:active {
+  transform: scale(0.98);
+}
+
+.glass-button-primary {
+  background: var(--editor-accent-primary);
+  border: 1px solid var(--editor-accent-primary);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.glass-button-primary:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  transform: scale(1.01);
+}
+
+/* ===== TOOL BUTTON SYSTEM ===== */
+
+.tool-button {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--editor-text-secondary);
+  transition: all 0.2s ease;
+}
+
+.tool-button:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--editor-text-primary);
+  transform: scale(1.02);
+}
+
+.tool-button-active {
+  background: var(--editor-tool-active);
+  border-color: var(--editor-tool-active);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.tool-button-active:hover {
+  background: var(--editor-tool-hover);
+  border-color: var(--editor-tool-hover);
+}
+
+/* ===== PROFESSIONAL INPUT SYSTEM ===== */
+
+.professional-input {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--editor-text-primary);
+  transition: all 0.2s ease;
+}
+
+.professional-input:focus {
+  outline: none;
+  border-color: var(--editor-border-focus);
+  box-shadow: 0 0 0 1px var(--editor-border-focus);
+  background: rgba(255, 255, 255, 0.12);
+  transform: scale(1.01);
+}
+
+.professional-input::placeholder {
+  color: var(--editor-text-tertiary);
+}
+
+/* ===== SPACING UTILITIES ===== */
+
+.space-micro { margin: var(--space-micro); }
+.space-xs { margin: var(--space-xs); }
+.space-sm { margin: var(--space-sm); }
+.space-md { margin: var(--space-md); }
+.space-lg { margin: var(--space-lg); }
+.space-xl { margin: var(--space-xl); }
+
+.p-micro { padding: var(--space-micro); }
+.p-xs { padding: var(--space-xs); }
+.p-sm { padding: var(--space-sm); }
+.p-md { padding: var(--space-md); }
+.p-lg { padding: var(--space-lg); }
+.p-xl { padding: var(--space-xl); }
+
+.gap-micro { gap: var(--space-micro); }
+.gap-xs { gap: var(--space-xs); }
+.gap-sm { gap: var(--space-sm); }
+.gap-md { gap: var(--space-md); }
+.gap-lg { gap: var(--space-lg); }
+.gap-xl { gap: var(--space-xl); }
+
+/* ===== CUSTOM SCROLLBAR ===== */
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ===== ACCESSIBILITY ENHANCEMENTS ===== */
+
+.focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--editor-border-focus);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===== ANIMATION UTILITIES ===== */
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
