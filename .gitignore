@@ -54,3 +54,7 @@ node_modules/.cache/
 .augment/
 .augment/rules/
 docs/
+
+#scripts
+scripts/
+app/test/
